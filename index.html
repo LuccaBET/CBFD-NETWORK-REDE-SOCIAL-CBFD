@@ -39,6 +39,7 @@
     .glow{ box-shadow:0 0 0 3px rgba(0,255,136,.25); }
     .spin { animation: spin 1.2s linear infinite; }
     @keyframes spin { from {transform: rotate(0)} to {transform: rotate(360deg)} }
+    .liked { color: #ff2d6b; } /* Instagram-style red for liked posts */
   </style>
 </head>
 <body class="bg-gray-100 dark:bg-darker text-gray-900 dark:text-gray-100 font-sans">
@@ -61,6 +62,10 @@
         <a data-route="links" class="hover:text-primary cursor-pointer">Oficial</a>
       </nav>
       <div class="flex items-center gap-3">
+        <div class="relative">
+          <input type="text" id="searchBar" placeholder="Pesquisar perfis..." class="rounded-full px-4 py-2 bg-gray-100 dark:bg-gray-800 focus:outline-none text-sm w-48" />
+          <div id="searchResults" class="absolute left-0 mt-2 w-full bg-white dark:bg-dark rounded-lg shadow-lg max-h-60 overflow-y-auto scrollbar-hide hidden z-50"></div>
+        </div>
         <button id="themeToggle" class="w-9 h-9 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
           <i class="fa-solid fa-moon dark:hidden"></i>
           <i class="fa-solid fa-sun hidden dark:block"></i>
@@ -71,9 +76,9 @@
         </button>
         <button id="openAuth" class="bg-primary text-black px-4 py-2 rounded-lg font-semibold">Entrar</button>
         <div id="userMenu" class="hidden items-center gap-2">
-          <div id="userEmoji" class="w-9 h-9 flex items-center justify-center text-xl">👤</div>
+          <div id="userEmoji" class="w-9 h-9 flex items-center justify-center text-xl cursor-pointer" onclick="openProfile(store.user.email)">👤</div>
           <div class="text-sm leading-tight">
-            <div id="userName" class="font-bold">—</div>
+            <div id="userName" class="font-bold cursor-pointer" onclick="openProfile(store.user.email)">—</div>
             <div id="userHandle" class="text-gray-500 dark:text-gray-400">@—</div>
           </div>
           <span id="wallet" class="ml-2 text-xs px-2 py-1 rounded bg-yellow-200 text-yellow-900 dark:bg-yellow-700 dark:text-yellow-100">0 V-COINS</span>
@@ -150,6 +155,7 @@
           <div class="bg-white dark:bg-dark rounded-xl shadow p-4">
             <div class="flex items-center gap-2"><div class="text-2xl">💰</div><h3 class="font-bold">Carteira</h3></div>
             <div id="walletBets" class="mt-2 font-bold"></div>
+            <button id="addVCoinBtn" class="mt-3 w-full bg-primary text-black font-bold rounded px-3 py-2 hidden">Adicionar V-COINS</button>
           </div>
         </aside>
       </div>
@@ -335,6 +341,149 @@
     </div>
   </div>
 
+  <!-- OWNER PANEL MODAL -->
+  <div id="ownerPanelModal" class="hidden fixed inset-0 bg-black/60 z-50 items-center justify-center p-4">
+    <div class="bg-white dark:bg-dark rounded-xl shadow max-w-lg w-full p-6">
+      <div class="flex items-center gap-2 mb-3">
+        <div class="text-2xl">⚡</div>
+        <h3 class="font-bold">Painel do Dono</h3>
+      </div>
+      <div class="space-y-2">
+        <button id="createAdminBtn" class="w-full bg-primary text-black font-bold rounded px-3 py-2">Criar Admin</button>
+        <button id="exportLogsBtn" class="w-full bg-secondary text-white font-bold rounded px-3 py-2">Exportar Logs</button>
+      </div>
+      <div class="mt-4 text-right">
+        <button id="closeOwnerPanel" class="text-sm px-3 py-1 rounded bg-gray-200 dark:bg-gray-700">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADMIN PANEL MODAL -->
+  <div id="adminPanelModal" class="hidden fixed inset-0 bg-black/60 z-50 items-center justify-center p-4">
+    <div class="bg-white dark:bg-dark rounded-xl shadow max-w-lg w-full p-6">
+      <div class="flex items-center gap-2 mb-3">
+        <div class="text-2xl">🛡️</div>
+        <h3 class="font-bold">Painel de Admin</h3>
+      </div>
+      <div class="space-y-2">
+        <button id="suspendUserBtn" class="w-full bg-primary text-black font-bold rounded px-3 py-2">Suspender Usuário</button>
+        <button id="publishNewsBtn" class="w-full bg-secondary text-white font-bold rounded px-3 py-2">Publicar Notícia</button>
+      </div>
+      <div class="mt-4 text-right">
+        <button id="closeAdminPanel" class="text-sm px-3 py-1 rounded bg-gray-200 dark:bg-gray-700">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROFILE MODAL -->
+  <div id="profileModal" class="hidden fixed inset-0 bg-black/60 z-50 items-center justify-center p-4">
+    <div class="bg-white dark:bg-dark rounded-xl shadow max-w-lg w-full p-6">
+      <div class="flex items-center gap-2 mb-3">
+        <div id="profileEmoji" class="text-2xl">👤</div>
+        <h3 id="profileName" class="font-bold"></h3>
+        <span id="profileVerified" class="verified hidden"></span>
+      </div>
+      <div class="text-sm text-gray-600 dark:text-gray-300">
+        <span id="profileHandle"></span> · <span id="profileFollowers">0 Seguidores</span> · <span id="profileFollowing">0 Seguindo</span> · <span id="profilePostsCount">0 Posts</span>
+      </div>
+      <p id="profileBio" class="mt-2 text-gray-700 dark:text-gray-200 whitespace-pre-wrap"></p>
+      <div id="profileActions" class="mt-3 flex gap-2">
+        <button id="followProfileBtn" class="px-3 py-1 rounded bg-primary text-black font-bold hidden">Seguir</button>
+        <button id="unfollowProfileBtn" class="px-3 py-1 rounded bg-gray-200 dark:bg-gray-700 hidden">Deixar de Seguir</button>
+        <button id="editProfileBtn" class="px-3 py-1 rounded bg-secondary text-white hidden">Editar Perfil</button>
+      </div>
+      <div class="mt-4">
+        <div class="flex border-b border-gray-200 dark:border-gray-700">
+          <button id="tabProfilePosts" class="py-2 px-4 text-sm font-medium border-b-2 border-primary text-primary">Posts</button>
+          <button id="tabProfileMentions" class="py-2 px-4 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-primary hover:border-primary">Menções</button>
+        </div>
+        <div id="profilePostsList" class="mt-4 space-y-3 max-h-60 overflow-y-auto scrollbar-hide"></div>
+        <div id="profileMentionsList" class="mt-4 space-y-3 max-h-60 overflow-y-auto scrollbar-hide hidden"></div>
+      </div>
+      <div class="mt-4 text-right">
+        <button id="closeProfile" class="text-sm px-3 py-1 rounded bg-gray-200 dark:bg-gray-700">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- EDIT PROFILE MODAL -->
+  <div id="editProfileModal" class="hidden fixed inset-0 bg-black/60 z-50 items-center justify-center p-4">
+    <div class="bg-white dark:bg-dark rounded-xl shadow max-w-lg w-full p-6">
+      <div class="flex items-center gap-2 mb-3">
+        <div class="text-2xl">✏️</div>
+        <h3 class="font-bold">Editar Perfil</h3>
+      </div>
+      <div class="space-y-3">
+        <div>
+          <label for="editProfileName" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Nome de Exibição</label>
+          <input type="text" id="editProfileName" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm bg-gray-100 dark:bg-gray-800 px-3 py-2">
+        </div>
+        <div>
+          <label for="editProfileEmoji" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Emoji/Avatar</label>
+          <select id="editProfileEmoji" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm bg-gray-100 dark:bg-gray-800 px-3 py-2"></select>
+        </div>
+        <div>
+          <label for="editProfileBio" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Bio</label>
+          <textarea id="editProfileBio" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm bg-gray-100 dark:bg-gray-800 px-3 py-2" rows="3"></textarea>
+        </div>
+      </div>
+      <div class="mt-4 flex justify-end gap-2">
+        <button id="saveProfileChanges" class="bg-primary text-black font-bold rounded px-3 py-2">Salvar Alterações</button>
+        <button id="closeEditProfile" class="text-sm px-3 py-1 rounded bg-gray-200 dark:bg-gray-700">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- POST THREAD MODAL -->
+  <div id="postThreadModal" class="hidden fixed inset-0 bg-black/60 z-50 items-center justify-center p-4">
+    <div class="bg-white dark:bg-dark rounded-xl shadow max-w-lg w-full p-6 flex flex-col h-[80vh]">
+      <div class="flex items-center gap-2 mb-3">
+        <div class="text-2xl">💬</div>
+        <h3 class="font-bold">Detalhes da Postagem</h3>
+      </div>
+      <div id="postThreadContent" class="flex-1 overflow-y-auto scrollbar-hide border-b border-gray-200 dark:border-gray-700 pb-3 mb-3 space-y-4"></div>
+      <div class="flex gap-2">
+        <input id="commentInput" type="text" placeholder="Adicionar um comentário..." class="flex-1 rounded-full px-4 py-2 bg-gray-100 dark:bg-gray-800 focus:outline-none"/>
+        <button id="sendCommentBtn" class="bg-primary text-black font-bold px-4 py-1.5 rounded-lg">Comentar</button>
+      </div>
+      <div class="mt-4 text-right">
+        <button id="closePostThread" class="text-sm px-3 py-1 rounded bg-gray-200 dark:bg-gray-700">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- BET SLIP MODAL -->
+  <div id="betSlipModal" class="hidden fixed inset-0 bg-black/60 z-50 items-center justify-center p-4">
+    <div class="bg-white dark:bg-dark rounded-xl shadow max-w-lg w-full p-6">
+      <div class="flex items-center gap-2 mb-3">
+        <div class="text-2xl">🧾</div>
+        <h3 class="font-bold">Bilhete de Aposta</h3>
+      </div>
+      <div id="betSlipContent" class="text-sm text-gray-600 dark:text-gray-300"></div>
+      <div class="mt-4 text-right">
+        <button id="closeBetSlip" class="text-sm px-3 py-1 rounded bg-gray-200 dark:bg-gray-700">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMMUNITY CHAT MODAL -->
+  <div id="communityChatModal" class="hidden fixed inset-0 bg-black/60 z-50 items-center justify-center p-4">
+    <div class="bg-white dark:bg-dark rounded-xl shadow max-w-lg w-full p-6 flex flex-col h-[80vh]">
+      <div class="flex items-center gap-2 mb-3">
+        <div class="text-2xl">💬</div>
+        <h3 id="chatCommunityName" class="font-bold"></h3>
+      </div>
+      <div id="chatMessages" class="flex-1 overflow-y-auto scrollbar-hide border-b border-gray-200 dark:border-gray-700 pb-3 mb-3 space-y-2"></div>
+      <div class="flex gap-2">
+        <input id="chatInput" type="text" placeholder="Digite sua mensagem..." class="flex-1 rounded-full px-4 py-2 bg-gray-100 dark:bg-gray-800 focus:outline-none"/>
+        <button id="sendChatMessage" class="bg-primary text-black font-bold px-4 py-1.5 rounded-lg">Enviar</button>
+      </div>
+      <div class="mt-4 text-right">
+        <button id="closeCommunityChat" class="text-sm px-3 py-1 rounded bg-gray-200 dark:bg-gray-700">Fechar</button>
+      </div>
+    </div>
+  </div>
+
   <!-- NOTIF POP -->
   <div id="notifPop" class="hidden fixed right-4 bottom-4 bg-white dark:bg-dark shadow rounded-xl p-3 border border-gray-200 dark:border-gray-700"></div>
 
@@ -348,22 +497,34 @@
 
     // Clubes oficiais (exatamente os fornecidos)
     const CLUBS = [
-      "VASXCUDO","PAZULS FC","MENGUDO","ACRZ","CELESTIAL","PORTXZVX","FC MADRILENOS","KIDS FC","FC CORRUPÇÃO","MONTE VERDE","ROYAL PARISIAN","REAL CHELSEA","CR PORCOS","LYNX","FC VENCEDORES","EC VITÓRIA","INTER DE MILHÃO","ROMA"
+      "VASXCUDO","PAZULS FC","MENGUDO","ACRZ","CELESTIAL","PORTXZVX","FC MADRILENOS","KIDS FC","FC CORRUPÇÃO","MONTE VERDE","ROYAL PARISIAN","REAL CHELSEA","CR PORCOS","LYNX","FC VENCEDORES","EC VITÓRIA","INTER DE MILHÃO","ROMA", "TIME 19", "TIME 20", "LYNX ESPORTE CLUBE", "CLUBE DE REGATAS DO PORCOS", "FC CORRERIA", "VITÓRIA FC"
     ];
 
+    const PROFILE_ICONS = ["😀", "😎", "🤩", "🥳", "🚀", "🏆", "⚽", "🔥", "🌟", "💯"];
+
     const POS = ["Goleiro","Zagueiro","Lateral","Meio-campo","Atacante"];
-    const EMOJI_BY_ROLE = { player:"🧑‍🎤", team:"🛡️", fan:"🙌" };
+    const EMOJI_BY_ROLE = { player:"🧑‍🎤", team:"🛡️", fan:"🙌", admin:"👑", owner:"⚡" };
+    const EMOJI_BY_NAME = {
+      "VASXCUDO": "🛡️", "PAZULS FC": "🐺", "MENGUDO": "🔴⚫", "ACRZ": "🦅", "CELESTIAL": "🌟",
+      "PORTXZVX": "⚓", "FC MADRILENOS": "👑", "KIDS FC": "👶", "FC CORRUPÇÃO": "💰", "MONTE VERDE": "🌳",
+      "ROYAL PARISIAN": "🗼", "REAL CHELSEA": "🦁", "CR PORCOS": "🐷", "LYNX": "🐾", "FC VENCEDORES": "🏆",
+      "EC VITÓRIA": "🦁", "INTER DE MILHÃO": "🔵⚫", "ROMA": "🐺", "TIME 19": "1️⃣9️⃣", "TIME 20": "2️⃣0️⃣",
+      "LYNX ESPORTE CLUBE": "🐾", "CLUBE DE REGATAS DO PORCOS": "🐷", "FC CORRERIA": "🏃", "VITÓRIA FC": "⭐",
+      "luccaburrows": "⚡", "prxdo10": "👑", "cbfdnews": "📰"
+    };
 
     const DEFAULT_STORE = {
       users:{}, // email -> user
-      posts:[],
+      posts:[], // {id, email, text, ts, likes, comments, shares, parentId (for replies)}
       matches:[],
       bets:[], // {email, matchId, pick, stake, odds, result}
       notifications:[],
       standings:null,
-      scorers:null,
+      scorers:[], // Changed to empty array
       marketActions:[],
-      career:{} // email -> {club, season, matches, statsPlayer, statsClub, history[]}
+      career:{}, // email -> {club, season, matches, statsPlayer, statsClub, history[]}
+      groups: {}, // id -> {name, cat, messages: []}
+      following: {} // email -> [followed_email1, ...]
     };
 
     const store = {
@@ -372,8 +533,15 @@
       user: JSON.parse(localStorage.getItem('cbfd_user')||'null')
     };
 
-    function addNotif(msg){
-      const s=store.k; s.notifications.push({msg, ts:Date.now()}); store.k=s;
+    function addNotif(msg, targetEmail = null){
+      const s=store.k;
+      if (targetEmail && s.users[targetEmail]) {
+        // This notification is for a specific user
+        // For simplicity, we'll just add it to the global notifications for now
+        // In a real app, this would be handled by a backend or more complex local storage per user
+      }
+      s.notifications.push({msg, ts:Date.now()});
+      store.k=s;
       qs('#notifDot').classList.remove('hidden');
       const pop = qs('#notifPop'); pop.textContent = msg; pop.classList.remove('hidden'); pop.classList.add('glow');
       setTimeout(()=>{ pop.classList.add('hidden'); pop.classList.remove('glow'); }, 2500);
@@ -397,7 +565,14 @@
       }
     }
 
-    function emojiForUser(u){ return u.emoji || EMOJI_BY_ROLE[u.type] || "👤"; }
+    function emojiForUser(u){
+      if (u.customEmoji) return u.customEmoji;
+      if (u.handle === '@luccaburrows') return EMOJI_BY_NAME['luccaburrows'];
+      if (u.handle === '@prxdo10') return EMOJI_BY_NAME['prxdo10'];
+      if (u.handle === '@cbfdnews') return EMOJI_BY_NAME['cbfdnews'];
+      if (u.type === 'team' && u.club) return EMOJI_BY_NAME[u.club] || EMOJI_BY_ROLE[u.type];
+      return u.emoji || EMOJI_BY_ROLE[u.type] || "👤";
+    }
 
     // ===== Router =====
     function go(route){
@@ -429,6 +604,9 @@
 
     // ===== Auth =====
     function fillClubSelect(el){ el.innerHTML = '<option value="">Selecione seu clube</option>' + CLUBS.map(c=>`<option>${c}</option>`).join(''); }
+    function fillProfileEmojiSelect(el) {
+      el.innerHTML = PROFILE_ICONS.map(emoji => `<option value="${emoji}">${emoji}</option>`).join('');
+    }
 
     function toggleAuthFields(){
       const type = qs('#authType').value;
@@ -452,15 +630,36 @@
     function completeLogin(email, name, type, club, wanna){
       const s=store.k;
       const handle='@'+(name||email.split('@')[0]).toLowerCase().replace(/[^a-z0-9_]/g,'');
+
       if(!s.users[email]){
         let baseWallet = 5000;
         if(type==='team') baseWallet = 30000000; // Clubes iniciam com 30.000.000 V-COINS
-        s.users[email]={ email, name:name||email.split('@')[0], type, club:club||"", handle, verified:(type!=='fan'), wallet: baseWallet, emoji: EMOJI_BY_ROLE[type], stats:{followers:rand(20,500), following:rand(5,200), posts:0}, achievements:[], groups:[], wannaPlay: !!wanna };
-      }else{
+        s.users[email]={ email, name:name||email.split('@')[0], type, club:club||"", handle, verified:(type!=='fan'), wallet: baseWallet, emoji: EMOJI_BY_ROLE[type], stats:{followers:rand(20,500), following:rand(5,200), posts:0}, achievements:[], groups:[], wannaPlay: !!wanna, contracts: [], likedPosts: [], bio: "" };
+      } else {
         s.users[email].type = type;
         s.users[email].club = club||s.users[email].club;
         s.users[email].wannaPlay = !!wanna;
       }
+
+      // Special verification rules
+      if (handle === '@luccaburrows') {
+        s.users[email].verified = true;
+        s.users[email].type = 'owner';
+        s.users[email].emoji = EMOJI_BY_NAME['luccaburrows'];
+        s.users[email].stats.followers = 1000; // Fixed followers for luccaburrows
+        s.users[email].password = 'reiglzin17'; // Set default password
+      } else if (handle === '@prxdo10') {
+        s.users[email].verified = true;
+        s.users[email].type = 'admin';
+        s.users[email].emoji = EMOJI_BY_ROLE['admin'];
+      } else if (type === 'fan' && s.users[email].stats.followers >= 50) {
+        s.users[email].verified = true;
+      } else if (type === 'player' || type === 'team') {
+        s.users[email].verified = true;
+      } else {
+        s.users[email].verified = false;
+      }
+
       store.k = s;
       store.user = { email };
       localStorage.setItem('cbfd_user', JSON.stringify(store.user));
@@ -476,6 +675,16 @@
       const type=qs('#authType').value;
       const club = type==='player' ? qs('#authClubSelect').value.trim() : (type==='team' ? qs('#authClub').value.trim() : '');
       const wanna=qs('#authWanna').checked;
+
+      // Password check for luccaburrows
+      if (email === 'luccaburrows@cbfd.com') {
+        const password = prompt('Enter password for luccaburrows@cbfd.com');
+        if (password !== 'reiglzin17') {
+          alert('Incorrect password.');
+          return;
+        }
+      }
+
       if(type==='player' && !CLUBS.includes(club)) return alert('Selecione um clube oficial da lista');
       completeLogin(email, name, type, club, wanna);
     });
@@ -492,22 +701,23 @@
     function renderFeed(){
       const s=store.k;
       const list=qs('#feedList');
-      list.innerHTML = s.posts.slice().reverse().map(p=>{
-        const u = s.users[p.email]||{name:'—',handle:'@—',emoji:'👤', verified:false};
+      list.innerHTML = s.posts.filter(p => !p.parentId).slice().reverse().map(p=>{ // Only show top-level posts
+        const u = s.users[p.email]||{name:'—',handle:'@—',emoji:'👤', verified:false, likedPosts:[]};
+        const isLiked = store.user && s.users[store.user.email] && s.users[store.user.email].likedPosts && s.users[store.user.email].likedPosts.includes(p.id);
         return `<article class='bg-white dark:bg-dark rounded-xl shadow post-card p-4'>
           <div class='flex items-start gap-3'>
-            <div class="w-10 h-10 flex items-center justify-center text-xl">${u.emoji||'👤'}</div>
+            <div class="w-10 h-10 flex items-center justify-center text-xl cursor-pointer" onclick="openProfile('${u.email}')">${emojiForUser(u)}</div>
             <div class='flex-1'>
               <div class='flex items-center gap-2'>
-                <h4 class='font-bold'>${u.name}${u.verified?"<span class='verified'></span>":""}</h4>
+                <h4 class='font-bold cursor-pointer' onclick="openProfile('${u.email}')">${u.name}${u.verified?"<span class='verified'></span>":""}</h4>
                 <span class='text-sm text-gray-500'>${u.handle}</span>
                 <span class='text-sm text-gray-500'>· ${new Date(p.ts).toLocaleTimeString()}</span>
               </div>
-              <p class='mt-2 whitespace-pre-wrap'>${p.text.replace(/#([A-Za-zÀ-ÿ0-9_]+)/g,"<span class='text-secondary'>#$1</span>").replace(/@([A-Za-z0-9_]+)/g,"<span class='text-primary'>@$1</span>")}</p>
+              <p class='mt-2 whitespace-pre-wrap'>${formatPostText(p.text)}</p>
               <div class='mt-3 flex items-center justify-between text-gray-500 text-sm'>
-                <button class='hover:text-primary'><i class='fa-regular fa-heart'></i> ${p.likes||0}</button>
-                <button class='hover:text-primary'><i class='fa-regular fa-comment'></i> ${p.comments||0}</button>
-                <button class='hover:text-primary'><i class='fa-solid fa-retweet'></i> ${p.shares||0}</button>
+                <button class='hover:text-primary ${isLiked ? 'liked' : ''}' onclick="toggleLikePost('${p.id}')"><i class='fa-heart ${isLiked ? 'fa-solid' : 'fa-regular'}'></i> <span id="likes-${p.id}">${p.likes||0}</span></button>
+                <button class='hover:text-primary' onclick="openPostThread('${p.id}')"><i class='fa-regular fa-comment'></i> <span id="comments-${p.id}">${s.posts.filter(c => c.parentId === p.id).length}</span></button>
+                <button class='hover:text-primary' onclick="sharePost('${p.id}')"><i class='fa-solid fa-retweet'></i> <span id="shares-${p.id}">${p.shares||0}</span></button>
               </div>
             </div>
           </div>
@@ -517,18 +727,216 @@
       renderAchievements();
     }
 
+    function formatPostText(text) {
+      return text.replace(/#([A-Za-zÀ-ÿ0-9_]+)/g,"<span class='text-secondary'>#$1</span>").replace(/@([A-Za-z0-9_]+)/g,"<span class='text-primary'>@$1</span>");
+    }
+
+    window.toggleLikePost = function(postId) {
+      if (!requireAuth()) return;
+      const s = store.k;
+      const post = s.posts.find(p => p.id === postId);
+      const currentUser = s.users[store.user.email];
+
+      if (post && currentUser) {
+        currentUser.likedPosts = currentUser.likedPosts || [];
+        const likedIndex = currentUser.likedPosts.indexOf(postId);
+
+        if (likedIndex === -1) {
+          // Like
+          currentUser.likedPosts.push(postId);
+          post.likes = (post.likes || 0) + 1;
+          addNotif('Você curtiu uma postagem!');
+        } else {
+          // Unlike
+          currentUser.likedPosts.splice(likedIndex, 1);
+          post.likes = Math.max(0, (post.likes || 0) - 1);
+          addNotif('Você descurtiu uma postagem.');
+        }
+        store.k = s;
+        renderFeed(); // Re-render to update heart icon
+        if (qs('#postThreadModal').classList.contains('flex')) {
+          openPostThread(currentPostThreadId); // Re-render thread if open
+        }
+      }
+    };
+
+    window.addCommentToPost = function(postId, commentText) {
+      if (!requireAuth()) return;
+      const s = store.k;
+      const post = s.posts.find(p => p.id === postId);
+      if (post) {
+        s.posts.push({ id: 'post'+Date.now(), email:store.user.email, text: commentText, ts:Date.now(), likes:0, comments:0, shares:0, parentId: postId});
+        // No need to increment post.comments, it's now derived from actual comments
+        store.k = s;
+        addNotif('Você comentou em uma postagem!');
+        renderFeed();
+        if (qs('#postThreadModal').classList.contains('flex')) {
+          openPostThread(currentPostThreadId); // Re-render thread if open
+        }
+        checkMentions(commentText, store.user.email);
+      }
+    };
+
+    window.sharePost = function(postId) {
+      if (!requireAuth()) return;
+      const s = store.k;
+      const post = s.posts.find(p => p.id === postId);
+      if (post) {
+        post.shares = (post.shares || 0) + 1;
+        store.k = s;
+        qs(`#shares-${postId}`).textContent = post.shares;
+        addNotif('Você repostou uma postagem!');
+        renderFeed();
+        if (qs('#postThreadModal').classList.contains('flex')) {
+          openPostThread(currentPostThreadId); // Re-render thread if open
+        }
+      }
+    };
+
     qs('#publishPost').addEventListener('click', ()=>{
       if(!requireAuth()) return;
       const text=qs('#postText').value.trim();
       if(!text) return;
       const s=store.k;
-      s.posts.push({ email:store.user.email, text, ts:Date.now(), likes:rand(0,99), comments:rand(0,20), shares:rand(0,10)});
+      s.posts.push({ id: 'post'+Date.now(), email:store.user.email, text, ts:Date.now(), likes:0, comments:0, shares:0});
       s.users[store.user.email].stats.posts += 1;
       store.k = s;
       qs('#postText').value='';
       award('primeira_postagem');
       renderFeed();
+      checkMentions(text, store.user.email);
     });
+
+    function checkMentions(text, senderEmail) {
+      const s = store.k;
+      const mentions = text.match(/@([A-Za-z0-9_]+)/g);
+      if (mentions) {
+        mentions.forEach(mention => {
+          const handle = mention.substring(1);
+          const mentionedUser = Object.values(s.users).find(u => u.handle.substring(1).toLowerCase() === handle.toLowerCase());
+          if (mentionedUser && mentionedUser.email !== senderEmail) {
+            mentionedUser.mentions = mentionedUser.mentions || [];
+            mentionedUser.mentions.push({
+              by: senderEmail,
+              text: text,
+              ts: Date.now(),
+              postId: s.posts[s.posts.length - 1].id // Assuming this is called right after post/comment creation
+            });
+            addNotif(`Você foi mencionado por ${s.users[senderEmail].name}!`, mentionedUser.email);
+          }
+        });
+        store.k = s;
+      }
+    }
+
+    function generateRandomPost() {
+      const s = store.k;
+      const postTypes = [
+        { type: 'rumor', texts: ['Rumores de transferência: {player} pode estar a caminho do {club}.', 'Fontes indicam que {player} está insatisfeito no {club}.', 'Negociações avançadas entre {club1} e {club2} por {player}.'] },
+        { type: 'provocation', texts: ['{club1} vai amassar o {club2} no próximo jogo! 🔥', 'Será que o {club} aguenta a pressão? 🤔', 'A torcida do {club} já está em festa antes mesmo do jogo. Será que vai dar zebra? 🦓'] },
+        { type: 'result', texts: ['Resultado final: {club1} {score1} x {score2} {club2}. Que jogo!', 'Vitória esmagadora do {club}! ⚽', 'Empate suado entre {club1} e {club2}.'] },
+        { type: 'meme', texts: ['Quando seu time perde mas você já esperava 😂', 'Aquele momento que o VAR decide o jogo 🤦‍♂️', 'Eu depois de apostar tudo no meu time e ele perder 😭'] },
+        { type: 'news', texts: ['O VASXCUDO FC lidera a competição, mas a cola tá forte 🚀.\nNa parte de baixo, o drama aumenta a cada rodada 😬.\n\n👉 Quem vai subir e quem vai cair?'] }
+      ];
+
+      const type = sample(postTypes);
+      let text = sample(type.texts);
+
+      const player = sample(MOCK_PLAYERS).name;
+      const club1 = sample(CLUBS);
+      const club2 = sample(CLUBS.filter(c => c !== club1));
+      const score1 = rand(0, 5);
+      const score2 = rand(0, 5);
+
+      text = text.replace('{player}', player)
+                 .replace('{club1}', club1)
+                 .replace('{club2}', club2)
+                 .replace('{club}', sample(CLUBS))
+                 .replace('{score1}', score1)
+                 .replace('{score2}', score2);
+
+      let email = 'cbfdnews@cbfd.com'; // Default for news
+      let name = 'CBFD News';
+      let handle = '@cbfdnews';
+      let verified = true;
+      let emoji = EMOJI_BY_NAME['cbfdnews'];
+
+      if (!s.users[email]) {
+        s.users[email] = { email, name, type: 'admin', club: '', handle, verified, wallet: 0, emoji, stats: { followers: rand(1000, 5000), following: rand(10, 50), posts: 0 }, achievements: [], groups: [], wannaPlay: false, likedPosts: [], bio: "" };
+      }
+
+      s.posts.push({ id: 'post'+Date.now(), email, text, ts:Date.now(), likes:rand(0,99), comments:0, shares:rand(0,10)});
+      s.users[email].stats.posts += 1;
+      store.k = s;
+      renderFeed();
+    }
+
+    setInterval(generateRandomPost, 60 * 1000); // Generate a new post every minute
+
+    function generateClubPost() {
+      const s = store.k;
+      const clubUsers = Object.values(s.users).filter(u => u.type === 'team');
+      if (clubUsers.length === 0) return;
+
+      const club = sample(clubUsers);
+      const clubName = club.club || club.name;
+
+      const postTemplates = [
+        `Confira nossa escalação para o jogo de hoje! #Vai${clubName.replace(/\s/g, '')}`,
+        `Vitória suada! 3 pontos garantidos! ⚽ #${clubName.replace(/\s/g, '')}Vence`,
+        `Dia de treino intenso! Foco total para a próxima partida. 💪`,
+        `Estamos prontos para o desafio! Contamos com o apoio da nossa torcida!`,
+        `Resultado final: ${clubName} ${rand(0,3)} x ${rand(0,3)} ${sample(CLUBS.filter(c => c !== clubName))}.`
+      ];
+
+      const text = sample(postTemplates);
+      s.posts.push({ id: 'post'+Date.now(), email: club.email, text, ts: Date.now(), likes: rand(10, 200), comments: 0, shares: rand(1, 20) });
+      club.stats.posts += 1;
+      store.k = s;
+      renderFeed();
+    }
+
+    setInterval(generateClubPost, 5 * 60 * 1000); // Generate a new club post every 5 minutes
+
+    function clubAutoComment() {
+      const s = store.k;
+      const clubUsers = Object.values(s.users).filter(u => u.type === 'team');
+      if (clubUsers.length === 0) return;
+
+      const recentPosts = s.posts.filter(p => !p.parentId && (Date.now() - p.ts < 10 * 60 * 1000)); // Posts from last 10 minutes
+      if (recentPosts.length === 0) return;
+
+      recentPosts.forEach(post => {
+        const mentionedClubs = CLUBS.filter(clubName => post.text.includes(clubName));
+        if (mentionedClubs.length > 0) {
+          mentionedClubs.forEach(clubName => {
+            const clubUser = clubUsers.find(u => u.club === clubName);
+            if (clubUser) {
+              const existingComment = s.posts.find(c => c.parentId === post.id && c.email === clubUser.email);
+              if (!existingComment && Math.random() < 0.5) { // 50% chance to comment if not already
+                const commentTemplates = [
+                  `Obrigado pela menção! Vamos com tudo! #Vai${clubName.replace(/\s/g, '')}`,
+                  `Sempre na luta! Agradecemos o apoio!`,
+                  `Foco total no próximo jogo!`,
+                  `Nossa torcida é a melhor!`,
+                  `Estamos trabalhando duro para trazer mais vitórias!`
+                ];
+                const commentText = sample(commentTemplates);
+                s.posts.push({ id: 'post'+Date.now(), email: clubUser.email, text: commentText, ts: Date.now(), likes: 0, comments: 0, shares: 0, parentId: post.id });
+                // No need to increment post.comments, it's now derived from actual comments
+                store.k = s;
+                renderFeed();
+                if (qs('#postThreadModal').classList.contains('flex')) {
+                  openPostThread(currentPostThreadId);
+                }
+              }
+            }
+          });
+        }
+      });
+    }
+
+    setInterval(clubAutoComment, 30 * 1000); // Check for club auto-comments every 30 seconds
 
     function renderAchievements(){
       const u = store.user? (store.k.users||{})[store.user.email] : null;
@@ -545,6 +953,295 @@
     qs('#notifBtn').addEventListener('click', ()=>{
       qs('#notifDot').classList.add('hidden');
       alert('Notificações recentes:\n\n- '+(store.k.notifications.slice(-3).map(n=>n.msg).reverse().join('\n- ')||'Nenhuma'));
+    });
+
+    // ===== Search Profiles =====
+    qs('#searchBar').addEventListener('input', (e) => {
+      const query = e.target.value.toLowerCase();
+      const searchResultsDiv = qs('#searchResults');
+      if (query.length > 0) {
+        const s = store.k;
+        const allUsers = Object.values(s.users);
+        const filteredUsers = allUsers.filter(user =>
+          user.name.toLowerCase().includes(query) ||
+          user.handle.toLowerCase().includes(query) ||
+          (user.club && user.club.toLowerCase().includes(query))
+        );
+
+        searchResultsDiv.innerHTML = filteredUsers.map(user => `
+          <div class="flex items-center gap-3 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer" onclick="openProfile('${user.email}'); qs('#searchBar').value=''; qs('#searchResults').classList.add('hidden');">
+            <div class="w-8 h-8 flex items-center justify-center text-lg">${emojiForUser(user)}</div>
+            <div>
+              <div class="font-bold text-sm">${user.name}${user.verified ? "<span class='verified'></span>" : ""}</div>
+              <div class="text-xs text-gray-500">${user.handle}</div>
+            </div>
+            <button class="ml-auto px-2 py-1 rounded bg-primary text-black text-xs font-bold" onclick="event.stopPropagation(); toggleFollow('${user.email}')">${store.user && isFollowing(user.email) ? 'Deixar de Seguir' : 'Seguir'}</button>
+          </div>
+        `).join('');
+        searchResultsDiv.classList.remove('hidden');
+      } else {
+        searchResultsDiv.classList.add('hidden');
+      }
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!qs('#searchBar').contains(e.target) && !qs('#searchResults').contains(e.target)) {
+        qs('#searchResults').classList.add('hidden');
+      }
+    });
+
+    // ===== Profile Modal =====
+    let currentProfileEmail = null;
+
+    function openProfile(email) {
+      const s = store.k;
+      const user = s.users[email];
+      if (!user) return;
+
+      currentProfileEmail = email;
+
+      qs('#profileEmoji').textContent = emojiForUser(user);
+      qs('#profileName').textContent = user.name;
+      qs('#profileHandle').textContent = user.handle;
+      qs('#profileFollowers').textContent = `${user.stats.followers} Seguidores`;
+      qs('#profileFollowing').textContent = `${user.stats.following} Seguindo`;
+      qs('#profilePostsCount').textContent = `${user.stats.posts} Posts`;
+      qs('#profileVerified').classList.toggle('hidden', !user.verified);
+      qs('#profileBio').textContent = user.bio || "Nenhuma biografia ainda.";
+
+      const userPosts = s.posts.filter(p => p.email === email && !p.parentId).slice().reverse(); // Only top-level posts
+      const userMentions = user.mentions || [];
+
+      const renderPostItem = (p) => {
+        const currentUser = store.user ? (store.k.users[store.user.email] || {}) : null;
+        const isLiked = currentUser && currentUser.likedPosts && currentUser.likedPosts.includes(p.id);
+        const commentCount = s.posts.filter(c => c.parentId === p.id).length;
+        return `
+          <div class="bg-gray-100 dark:bg-gray-800 rounded-lg p-3 text-sm">
+            <p class="whitespace-pre-wrap">${formatPostText(p.text)}</p>
+            <div class='mt-2 flex items-center justify-between text-gray-500 text-xs'>
+              <button class='hover:text-primary ${isLiked ? 'liked' : ''}' onclick="toggleLikePost('${p.id}')"><i class='fa-heart ${isLiked ? 'fa-solid' : 'fa-regular'}'></i> <span id="likes-${p.id}">${p.likes||0}</span></button>
+              <button class='hover:text-primary' onclick="openPostThread('${p.id}')"><i class='fa-regular fa-comment'></i> <span id="comments-${p.id}">${commentCount}</span></button>
+              <button class='hover:text-primary' onclick="sharePost('${p.id}')"><i class='fa-solid fa-retweet'></i> <span id="shares-${p.id}">${p.shares||0}</span></button>
+            </div>
+          </div>
+        `;
+      };
+
+      qs('#profilePostsList').innerHTML = userPosts.map(renderPostItem).join('') || "<div class='text-sm text-gray-500'>Nenhuma postagem.</div>";
+      qs('#profileMentionsList').innerHTML = userMentions.map(m => {
+        const sender = s.users[m.by] || {name:'—',handle:'@—',emoji:'👤'};
+        return `
+          <div class="bg-gray-100 dark:bg-gray-800 rounded-lg p-3 text-sm cursor-pointer" onclick="openPostThread('${m.postId}')">
+            <div class="flex items-center gap-2 mb-1">
+              <div class="w-6 h-6 flex items-center justify-center text-md">${emojiForUser(sender)}</div>
+              <span class="font-bold">${sender.name}</span> <span class="text-gray-500 text-xs">${sender.handle}</span>
+            </div>
+            <p class="whitespace-pre-wrap">${formatPostText(m.text)}</p>
+            <span class="text-gray-500 text-xs">${new Date(m.ts).toLocaleTimeString()}</span>
+          </div>
+        `;
+      }).join('') || "<div class='text-sm text-gray-500'>Nenhuma menção.</div>";
+
+
+      const followBtn = qs('#followProfileBtn');
+      const unfollowBtn = qs('#unfollowProfileBtn');
+      const editBtn = qs('#editProfileBtn');
+
+      if (store.user && store.user.email === email) {
+        followBtn.classList.add('hidden');
+        unfollowBtn.classList.add('hidden');
+        editBtn.classList.remove('hidden');
+      } else if (store.user) {
+        editBtn.classList.add('hidden');
+        if (isFollowing(email)) {
+          followBtn.classList.add('hidden');
+          unfollowBtn.classList.remove('hidden');
+        } else {
+          followBtn.classList.remove('hidden');
+          unfollowBtn.classList.add('hidden');
+        }
+      } else {
+        followBtn.classList.add('hidden');
+        unfollowBtn.classList.add('hidden');
+        editBtn.classList.add('hidden');
+      }
+
+      // Tab functionality
+      qs('#tabProfilePosts').onclick = () => {
+        qs('#tabProfilePosts').classList.add('border-primary', 'text-primary');
+        qs('#tabProfilePosts').classList.remove('border-transparent', 'text-gray-500');
+        qs('#tabProfileMentions').classList.remove('border-primary', 'text-primary');
+        qs('#tabProfileMentions').classList.add('border-transparent', 'text-gray-500');
+        qs('#profilePostsList').classList.remove('hidden');
+        qs('#profileMentionsList').classList.add('hidden');
+      };
+      qs('#tabProfileMentions').onclick = () => {
+        qs('#tabProfileMentions').classList.add('border-primary', 'text-primary');
+        qs('#tabProfileMentions').classList.remove('border-transparent', 'text-gray-500');
+        qs('#tabProfilePosts').classList.remove('border-primary', 'text-primary');
+        qs('#tabProfilePosts').classList.add('border-transparent', 'text-gray-500');
+        qs('#profileMentionsList').classList.remove('hidden');
+        qs('#profilePostsList').classList.add('hidden');
+      };
+      qs('#tabProfilePosts').click(); // Default to posts tab
+
+      qs('#profileModal').classList.remove('hidden');
+      qs('#profileModal').classList.add('flex');
+    }
+
+    function closeProfile() {
+      qs('#profileModal').classList.add('hidden');
+      qs('#profileModal').classList.remove('flex');
+      currentProfileEmail = null;
+    }
+    qs('#closeProfile').addEventListener('click', closeProfile);
+
+    qs('#editProfileBtn').addEventListener('click', () => {
+      if (!store.user) return;
+      const user = store.k.users[store.user.email];
+      qs('#editProfileName').value = user.name;
+      fillProfileEmojiSelect(qs('#editProfileEmoji'));
+      qs('#editProfileEmoji').value = user.customEmoji || user.emoji;
+      qs('#editProfileBio').value = user.bio || "";
+      qs('#editProfileModal').classList.remove('hidden');
+      qs('#editProfileModal').classList.add('flex');
+    });
+
+    qs('#closeEditProfile').addEventListener('click', () => {
+      qs('#editProfileModal').classList.add('hidden');
+      qs('#editProfileModal').classList.remove('flex');
+    });
+
+    qs('#saveProfileChanges').addEventListener('click', () => {
+      if (!store.user) return;
+      const s = store.k;
+      const user = s.users[store.user.email];
+      user.name = qs('#editProfileName').value.trim();
+      user.customEmoji = qs('#editProfileEmoji').value.trim();
+      user.bio = qs('#editProfileBio').value.trim();
+
+      // Re-evaluate verification for fans based on new follower count if applicable
+      if (user.type === 'fan') {
+        user.verified = user.stats.followers >= 50;
+      }
+
+      store.k = s;
+      hydrateUI();
+      closeEditProfile();
+      openProfile(store.user.email); // Re-open profile to show changes
+      addNotif('Perfil atualizado com sucesso!');
+    });
+
+    function isFollowing(email) {
+      if (!store.user) return false;
+      const currentUser = store.k.users[store.user.email];
+      return currentUser && currentUser.following && currentUser.following.includes(email);
+    }
+
+    window.toggleFollow = function(targetEmail) {
+      if (!requireAuth()) return;
+      const s = store.k;
+      const currentUser = s.users[store.user.email];
+      const targetUser = s.users[targetEmail];
+
+      if (!currentUser || !targetUser || currentUser.email === targetEmail) return;
+
+      currentUser.following = currentUser.following || [];
+      targetUser.stats.followers = targetUser.stats.followers || 0;
+
+      const isCurrentlyFollowing = currentUser.following.includes(targetEmail);
+
+      if (isCurrentlyFollowing) {
+        // Unfollow
+        currentUser.following = currentUser.following.filter(e => e !== targetEmail);
+        targetUser.stats.followers = Math.max(0, targetUser.stats.followers - 1);
+        addNotif(`Você deixou de seguir ${targetUser.name}.`);
+      } else {
+        // Follow
+        currentUser.following.push(targetEmail);
+        targetUser.stats.followers += 1;
+        addNotif(`Você está seguindo ${targetUser.name}!`);
+      }
+
+      // Re-evaluate verification for target user if they are a fan
+      if (targetUser.type === 'fan') {
+        targetUser.verified = targetUser.stats.followers >= 50;
+      }
+
+      store.k = s;
+      hydrateUI();
+      if (currentProfileEmail === targetEmail) {
+        openProfile(targetEmail); // Update profile view if it's open
+      }
+      renderFeed(); // Update feed to reflect any changes in verification badges
+    };
+
+    // ===== Post Thread Modal =====
+    let currentPostThreadId = null;
+
+    function openPostThread(postId) {
+      const s = store.k;
+      const mainPost = s.posts.find(p => p.id === postId);
+      if (!mainPost) return;
+
+      currentPostThreadId = postId;
+      const comments = s.posts.filter(p => p.parentId === postId).sort((a,b) => a.ts - b.ts);
+
+      const renderPost = (p, isMain = false) => {
+        const u = s.users[p.email] || {name:'—',handle:'@—',emoji:'👤', verified:false, likedPosts:[]};
+        const currentUser = store.user ? (s.users[store.user.email] || {}) : null;
+        const isLiked = currentUser && currentUser.likedPosts && currentUser.likedPosts.includes(p.id);
+        const commentCount = s.posts.filter(c => c.parentId === p.id).length;
+        return `
+          <div class="${isMain ? 'border-b border-gray-200 dark:border-gray-700 pb-4' : 'ml-8 mt-4'}">
+            <div class='flex items-start gap-3'>
+              <div class="w-10 h-10 flex items-center justify-center text-xl cursor-pointer" onclick="openProfile('${u.email}')">${emojiForUser(u)}</div>
+              <div class='flex-1'>
+                <div class='flex items-center gap-2'>
+                  <h4 class='font-bold cursor-pointer' onclick="openProfile('${u.email}')">${u.name}${u.verified?"<span class='verified'></span>":""}</h4>
+                  <span class='text-sm text-gray-500'>${u.handle}</span>
+                  <span class='text-sm text-gray-500'>· ${new Date(p.ts).toLocaleTimeString()}</span>
+                </div>
+                <p class='mt-2 whitespace-pre-wrap'>${formatPostText(p.text)}</p>
+                <div class='mt-3 flex items-center justify-between text-gray-500 text-sm'>
+                  <button class='hover:text-primary ${isLiked ? 'liked' : ''}' onclick="toggleLikePost('${p.id}')"><i class='fa-heart ${isLiked ? 'fa-solid' : 'fa-regular'}'></i> <span id="likes-${p.id}">${p.likes||0}</span></button>
+                  <button class='hover:text-primary' onclick="openPostThread('${p.id}')"><i class='fa-regular fa-comment'></i> <span id="comments-${p.id}">${commentCount}</span></button>
+                  <button class='hover:text-primary' onclick="sharePost('${p.id}')"><i class='fa-solid fa-retweet'></i> <span id="shares-${p.id}">${p.shares||0}</span></button>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      };
+
+      let threadHtml = renderPost(mainPost, true);
+      if (comments.length > 0) {
+        threadHtml += `<div class="mt-4 text-gray-500 text-sm">Comentários:</div>`;
+        threadHtml += comments.map(c => renderPost(c)).join('');
+      } else {
+        threadHtml += `<div class="mt-4 text-gray-500 text-sm">Nenhum comentário ainda.</div>`;
+      }
+
+      qs('#postThreadContent').innerHTML = threadHtml;
+      qs('#commentInput').value = '';
+      qs('#postThreadModal').classList.remove('hidden');
+      qs('#postThreadModal').classList.add('flex');
+    }
+
+    qs('#sendCommentBtn').addEventListener('click', () => {
+      if (!currentPostThreadId) return;
+      const commentText = qs('#commentInput').value.trim();
+      if (commentText) {
+        addCommentToPost(currentPostThreadId, commentText);
+        qs('#commentInput').value = '';
+      }
+    });
+
+    qs('#closePostThread').addEventListener('click', () => {
+      qs('#postThreadModal').classList.add('hidden');
+      qs('#postThreadModal').classList.remove('flex');
+      currentPostThreadId = null;
     });
 
     // ===== Bets =====
@@ -566,8 +1263,14 @@
                              m.ob=(Math.max(1.2, (parseFloat(m.ob)+(Math.random()-.5)*0.2))).toFixed(2);
                              m.draw=(Math.max(1.2, (parseFloat(m.draw)+(Math.random()-.5)*0.2))).toFixed(2); });
       store.k = s;
-      const isClub = store.user && (store.k.users[store.user.email]?.type==='team');
+      const currentUser = store.user ? (store.k.users[store.user.email] || {}) : null;
+      const isClub = currentUser && (currentUser.type==='team');
+      const isFan = currentUser && (currentUser.type==='fan');
+      const isPlayer = currentUser && (currentUser.type==='player');
+
       qs('#clubBetWarning').classList.toggle('hidden', !isClub);
+      qs('#addVCoinBtn').classList.toggle('hidden', isClub); // Only fans and players can add V-COINS
+
       qs('#matchList').innerHTML = s.matches.map(m=> `
         <div class="p-3 rounded-lg border border-gray-200 dark:border-gray-700 ${isClub?'opacity-60 pointer-events-none':''}">
           <div class="flex items-center justify-between">
@@ -586,6 +1289,27 @@
       qs('#walletBets').textContent = coins(currentWallet());
     }
 
+    qs('#addVCoinBtn').addEventListener('click', () => {
+      if (!requireAuth()) return;
+      const currentUser = store.k.users[store.user.email];
+      if (currentUser.type === 'team') {
+        addNotif('Clubes não podem adicionar V-COINS.');
+        return;
+      }
+      const amountStr = prompt('Quanto V-COINS você quer adicionar? (Simulação de depósito)', '1000');
+      const amount = parseInt(amountStr);
+      if (amount > 0 && !isNaN(amount)) {
+        const s = store.k;
+        s.users[store.user.email].wallet += amount;
+        store.k = s;
+        addNotif(`${coins(amount)} adicionados à sua carteira!`);
+        hydrateWallets();
+        renderBetsPage();
+      } else {
+        alert('Valor inválido.');
+      }
+    });
+
     function openBet(matchId, pick, odds){
       if(!requireAuth()) return;
       const u=(store.k.users||{})[store.user.email];
@@ -602,13 +1326,32 @@
       store.k=s;
       addNotif(`Aposta realizada: ${pick} (${odds}) · ${coins(stake)}`);
       renderBetsPage();
+      openBetSlip(bet);
     }
+
+    function openBetSlip(bet) {
+      qs('#betSlipContent').innerHTML = `
+        <p><b>Partida:</b> ${store.k.matches.find(m => m.id === bet.matchId).a} vs ${store.k.matches.find(m => m.id === bet.matchId).b}</p>
+        <p><b>Sua Escolha:</b> ${bet.pick}</p>
+        <p><b>Odds:</b> ${bet.odds}</p>
+        <p><b>Valor Apostado:</b> ${coins(bet.stake)}</p>
+        <p><b>Resultado:</b> ${bet.result}</p>
+        <p><b>Data:</b> ${new Date(bet.ts).toLocaleString()}</p>
+      `;
+      qs('#betSlipModal').classList.remove('hidden');
+      qs('#betSlipModal').classList.add('flex');
+    }
+
+    qs('#closeBetSlip').addEventListener('click', () => {
+      qs('#betSlipModal').classList.add('hidden');
+      qs('#betSlipModal').classList.remove('flex');
+    });
 
     function renderBetsHistory(){
       const s=store.k;
       const my = store.user ? s.bets.filter(b=>b.email===store.user.email) : [];
       qs('#betsHistory').innerHTML = my.slice().reverse().map(b=>{
-        return `<div class="flex items-center justify-between border-b border-gray-200 dark:border-gray-800 py-1">
+        return `<div class="flex items-center justify-between border-b border-gray-200 dark:border-gray-800 py-1 cursor-pointer" onclick="openBetSlip(${JSON.stringify(b).replace(/"/g, '&quot;')})">
           <div>${b.pick} <span class="text-xs text-gray-500">odds ${b.odds}</span></div>
           <div class="${b.result==='ganhou'?'text-green-600': b.result==='perdeu'?'text-red-500':'text-gray-500'}">${b.result}</div>
           <div>${coins(b.stake)}</div>
@@ -630,7 +1373,7 @@
       // Randomly settle some matches and bets
       const s=store.k;
       s.matches.forEach(m=>{
-        if(Math.random()<.3){ // 30% chance to finish
+        if(Math.random()<.3 && m.ts < Date.now()){ // 30% chance to finish and match time passed
           const outcome = sample([m.a, 'Empate', m.b]);
           s.bets.filter(b=>b.matchId===m.id && b.result==='pendente').forEach(b=>{
             if(b.pick===outcome){
@@ -652,10 +1395,39 @@
     setInterval(()=>{ if(localStorage.getItem('cbfd_route')==='bets') { settleMatches(); renderBetsPage(); } }, 8000);
 
     // ===== Clubs =====
+    function ensureClubProfiles() {
+      const s = store.k;
+      FIXED_STANDINGS.forEach(clubData => {
+        const clubName = clubData.team;
+        const clubEmail = `club_${clubName.toLowerCase().replace(/[^a-z0-9]/g, '')}@cbfd.com`;
+        if (!s.users[clubEmail]) {
+          s.users[clubEmail] = {
+            email: clubEmail,
+            name: clubName,
+            type: 'team',
+            club: clubName,
+            handle: `@${clubName.toLowerCase().replace(/[^a-z0-9]/g, '')}`,
+            verified: true,
+            wallet: 30000000, // Starting wallet for clubs
+            emoji: EMOJI_BY_NAME[clubName] || sample(PROFILE_ICONS),
+            stats: { followers: rand(500, 5000), following: rand(10, 100), posts: 0 },
+            achievements: [],
+            groups: [],
+            wannaPlay: false,
+            contracts: [],
+            likedPosts: [],
+            bio: `O clube oficial ${clubName} da CBFD. Siga para notícias, resultados e mais!`
+          };
+        }
+      });
+      store.k = s;
+    }
+
     function renderClubsPage(){
+      ensureClubProfiles();
       qs('#clubsGrid').innerHTML = CLUBS.map(name=>`<div class="p-3 rounded-xl bg-white dark:bg-dark shadow">
         <div class="flex items-center gap-3">
-          <div class="text-3xl">🛡️</div>
+          <div class="text-3xl">${EMOJI_BY_NAME[name] || '🛡️'}</div>
           <div>
             <div class="font-bold">${name}<span class="verified"></span></div>
             <div class="text-xs text-gray-500">Elenco, posts e estatísticas</div>
@@ -663,12 +1435,15 @@
         </div>
         <div class="mt-2 flex gap-2 text-xs">
           <button class="px-2 py-1 rounded bg-primary text-black font-bold" onclick="followClub('${name}')">Seguir</button>
-          <button class="px-2 py-1 rounded bg-gray-200 dark:bg-gray-700" onclick="openClub('${name}')">Abrir</button>
+          <button class="px-2 py-1 rounded bg-gray-200 dark:bg-gray-700" onclick="openClubProfileByName('${name}')">Abrir</button>
         </div>
       </div>`).join('');
     }
     function followClub(name){ if(!requireAuth()) return; addNotif('Você seguiu '+name); }
-    function openClub(name){ alert('Perfil do clube '+name+' — (página detalhada pode ser expandida futuramente)'); }
+    function openClubProfileByName(clubName) {
+      const clubEmail = `club_${clubName.toLowerCase().replace(/[^a-z0-9]/g, '')}@cbfd.com`;
+      openProfile(clubEmail);
+    }
 
     // ===== Marketplace & Agência =====
     const MOCK_PLAYERS = Array.from({length:24}).map((_,i)=>({
@@ -686,6 +1461,12 @@
 
     function renderMarket(list = MOCK_PLAYERS){
       const s=store.k;
+      const currentUser = store.user ? (store.k.users[store.user.email] || {}) : null;
+      const canAccessMarket = currentUser && (currentUser.type === 'team' || currentUser.type === 'admin' || currentUser.type === 'owner');
+
+      qs('#page-market').classList.toggle('hidden', !canAccessMarket);
+      if (!canAccessMarket) return;
+
       qs('#marketList').innerHTML = list.map(p=>`<div class='bg-white dark:bg-dark rounded-xl shadow p-4'>
         <div class='flex items-center gap-3'>
           <div class="w-10 h-10 flex items-center justify-center text-xl">${p.verified?"🧑‍✈️":"🧑‍🦱"}</div>
@@ -697,8 +1478,8 @@
         </div>
         <div class='text-xs text-gray-600 dark:text-gray-300 mt-2'>${p.history} · Contrato: ${p.contract}</div>
         <div class='mt-3 flex gap-2'>
-          <button class='px-3 py-1 rounded bg-primary text-black font-bold' onclick='buyPlayer(${p.id})'>Comprar</button>
-          <button class='px-3 py-1 rounded bg-gray-200 dark:bg-gray-700' onclick='transferPlayer(${p.id})'>Propor transferência</button>
+          <button class='px-3 py-1 rounded bg-primary text-black font-bold ${currentUser.type !== 'team' ? 'opacity-60 pointer-events-none' : ''}' onclick='buyPlayer(${p.id})'>Comprar</button>
+          <button class='px-3 py-1 rounded bg-gray-200 dark:bg-gray-700 ${currentUser.type !== 'team' ? 'opacity-60 pointer-events-none' : ''}' onclick='transferPlayer(${p.id})'>Propor transferência</button>
         </div>
       </div>`).join('');
       qs('#walletMarket').textContent = coins(currentWallet());
@@ -740,10 +1521,14 @@
     window.buyPlayer = function(id){
       if(!requireAuth()) return;
       const u=(store.k.users||{})[store.user.email];
+      if (u.type !== 'team') {
+        addNotif('Apenas Clubes podem comprar jogadores.');
+        return;
+      }
       const p = MOCK_PLAYERS.find(x=>x.id===id); if(!p) return;
       if(u.wallet < p.price){ alert('Saldo insuficiente'); return; }
       u.wallet -= p.price;
-      if(u.type==='team'){ p.club = (u.club||u.name).toUpperCase(); }
+      p.club = (u.club||u.name).toUpperCase();
       const s=store.k; s.users[u.email]=u; s.marketActions.push({email:u.email, action:'compra', value:p.price}); store.k=s;
       hydrateWallets(); addNotif(`Compra realizada: ${p.name} por ${coins(p.price)}`); award('negociador');
       renderMarket();
@@ -752,6 +1537,10 @@
     window.transferPlayer = function(id){
       if(!requireAuth()) return;
       const u=(store.k.users||{})[store.user.email];
+      if (u.type !== 'team') {
+        addNotif('Apenas Clubes podem propor transferências.');
+        return;
+      }
       const p = MOCK_PLAYERS.find(x=>x.id===id); if(!p) return;
       const valor = Math.round(p.price* (0.6 + Math.random()*0.8));
       if(u.wallet < valor){ alert('Saldo insuficiente para proposta'); return; }
@@ -759,16 +1548,33 @@
       const s=store.k; s.users[u.email]=u; s.marketActions.push({email:u.email, action:'proposta', value:valor}); store.k=s;
       hydrateWallets(); addNotif(`Proposta enviada por ${p.name} (${coins(valor)})`); award('mercado_ativo');
       renderMarket();
+
+      // Simulate contract offer
+      const playerUser = Object.values(s.users).find(user => user.name === p.name && user.type === 'player');
+      if (playerUser) {
+        const salary = rand(100, 500);
+        const contractOffer = {
+          fromClub: u.club || u.name,
+          player: p.name,
+          salary: salary,
+          status: 'pending',
+          ts: Date.now()
+        };
+        playerUser.contracts = playerUser.contracts || [];
+        playerUser.contracts.push(contractOffer);
+        addNotif(`Você recebeu uma proposta de contrato do ${contractOffer.fromClub} para ${coins(salary)}/mês!`, playerUser.email);
+        store.k = s;
+      }
     }
 
     function renderAgency(){
-      const users = Object.values(store.k.users||{}).filter(u=>u.wannaPlay);
+      const users = Object.values(store.k.users||{}).filter(u=>u.wannaPlay || u.type === 'player');
       const list = [
         ...MOCK_PLAYERS.filter(p=> p.contract==='livre' || p.club==='Sem Clube').slice(0,9).map(p=>({
           name:p.name, age:p.age, pos:p.pos, verified:p.verified, club:p.club, emoji:p.verified?"🧑‍✈️":"🧑‍🦱", tag:'Livre'
         })),
         ...users.map(u=>({
-          name:u.name, age:rand(16,35), pos:sample(POS), verified:u.verified, club:'Sem Clube', emoji:emojiForUser(u), tag:'Torcedor → Jogador'
+          name:u.name, age:rand(16,35), pos:sample(POS), verified:u.verified, club:'Sem Clube', emoji:emojiForUser(u), tag: u.wannaPlay ? 'Torcedor → Jogador' : 'Jogador'
         }))
       ];
       qs('#agencyList').innerHTML = list.map(p=>`<div class='bg-white dark:bg-dark rounded-xl shadow p-4'>
@@ -780,21 +1586,74 @@
           </div>
           <span class='ml-auto badge bg-gray-200 dark:bg-gray-800'>${p.tag}</span>
         </div>
-        <button class='mt-3 px-3 py-1 rounded bg-secondary text-white'>Contatar</button>
+        <button class='mt-3 px-3 py-1 rounded bg-secondary text-white' onclick="contactPlayerForContract('${p.name}')">Contatar</button>
       </div>`).join('') || `<div class='text-gray-500'>Nenhum jogador livre no momento</div>`;
     }
 
-    // ===== Estatísticas =====
-    function ensureStandings(){
-      const s=store.k; if(!s.standings){
-        s.standings = CLUBS.map(n=>({ team:n, pj:rand(10,22), v:rand(3,15) }));
-        s.standings.forEach(r=>{ r.e=rand(0, r.pj - r.v); r.d=Math.max(0, r.pj - r.v - r.e); r.gp=rand(5,60); r.gc=rand(5,60); r.pts=r.v*3+r.e; });
-        s.scorers = Array.from({length:10}).map((_,i)=>({
-          name: `${sample(['R','L','M','D','N'])}. ${sample(['Silva','Souza','Alves','Ferreira','Lima','Ramos'])}`,
-          club: sample(CLUBS), g: rand(3,22)
-        })).sort((a,b)=>b.g-a.g);
-        store.k = s;
+    window.contactPlayerForContract = function(playerName) {
+      if (!requireAuth()) return;
+      const currentUser = store.k.users[store.user.email];
+      if (currentUser.type !== 'team') {
+        addNotif('Apenas Clubes podem oferecer contratos.');
+        return;
       }
+
+      const playerUser = Object.values(store.k.users).find(u => u.name === playerName && u.type === 'player');
+      if (!playerUser) {
+        addNotif('Jogador não encontrado como usuário.');
+        return;
+      }
+
+      const salaryStr = prompt(`Oferecer contrato para ${playerName}. Salário mensal em V-COINS:`, '500');
+      const salary = parseInt(salaryStr);
+      if (salary > 0 && !isNaN(salary)) {
+        const contractOffer = {
+          fromClub: currentUser.club || currentUser.name,
+          player: playerName,
+          salary: salary,
+          status: 'pending',
+          ts: Date.now()
+        };
+        playerUser.contracts = playerUser.contracts || [];
+        playerUser.contracts.push(contractOffer);
+        store.k.users[playerUser.email] = playerUser;
+        store.k = store.k;
+        addNotif(`Proposta de contrato enviada para ${playerName} do ${currentUser.club || currentUser.name} por ${coins(salary)}/mês.`);
+        addNotif(`Você recebeu uma proposta de contrato do ${contractOffer.fromClub} para ${coins(salary)}/mês!`, playerUser.email);
+      } else {
+        alert('Valor de salário inválido.');
+      }
+    };
+
+    // ===== Estatísticas =====
+    const FIXED_STANDINGS = [
+      { team: "VASXCUDO FC", pts: 17, pj: 7, v: 5, e: 2, d: 0, gp: 15, gc: 5 },
+      { team: "LYNX ESPORTE CLUBE", pts: 16, pj: 7, v: 5, e: 1, d: 1, gp: 14, gc: 6 },
+      { team: "FC MADRILENOS", pts: 16, pj: 7, v: 5, e: 1, d: 1, gp: 13, gc: 7 },
+      { team: "CELESTIAL FC", pts: 16, pj: 7, v: 5, e: 1, d: 1, gp: 12, gc: 6 },
+      { team: "MENGUDO FC", pts: 15, pj: 7, v: 4, e: 3, d: 0, gp: 11, gc: 4 },
+      { team: "PORTXZVX FC", pts: 14, pj: 7, v: 4, e: 2, d: 1, gp: 10, gc: 5 },
+      { team: "ACRZ FC", pts: 14, pj: 7, v: 4, e: 2, d: 1, gp: 9, gc: 4 },
+      { team: "KIDS FC", pts: 14, pj: 7, v: 4, e: 2, d: 1, gp: 8, gc: 3 },
+      { team: "ROYAL PARIS FC", pts: 14, pj: 7, v: 4, e: 2, d: 1, gp: 7, gc: 2 },
+      { team: "CLUBE DE REGATAS DO PORCOS", pts: 13, pj: 7, v: 4, e: 1, d: 2, gp: 10, gc: 8 },
+      { team: "PAZULS FC", pts: 12, pj: 7, v: 3, e: 3, d: 1, gp: 9, gc: 7 },
+      { team: "REAL CHELSEA", pts: 12, pj: 7, v: 3, e: 3, d: 1, gp: 8, gc: 6 },
+      { team: "MONTE VERDE FC", pts: 12, pj: 7, v: 3, e: 3, d: 1, gp: 7, gc: 5 },
+      { team: "FC CORRERIA", pts: 10, pj: 7, v: 3, e: 1, d: 3, gp: 6, gc: 7 },
+      { team: "TIME 19", pts: 8, pj: 7, v: 2, e: 2, d: 3, gp: 5, gc: 8 },
+      { team: "FC VENCEDORES", pts: 6, pj: 7, v: 1, e: 3, d: 3, gp: 4, gc: 9 },
+      { team: "EC VITÓRIA", pts: 5, pj: 7, v: 1, e: 2, d: 4, gp: 3, gc: 10 },
+      { team: "ROMA FC", pts: 4, pj: 7, v: 1, e: 1, d: 5, gp: 2, gc: 11 },
+      { team: "TIME 20", pts: 3, pj: 7, v: 0, e: 3, d: 4, gp: 1, gc: 12 },
+      { team: "INTER DE MILHÃO", pts: 1, pj: 7, v: 0, e: 1, d: 6, gp: 0, gc: 13 }
+    ];
+
+    function ensureStandings(){
+      const s=store.k;
+      s.standings = FIXED_STANDINGS;
+      s.scorers = []; // Ensure scorers is always empty
+      store.k = s;
     }
     function renderStats(){
       ensureStandings();
@@ -808,24 +1667,41 @@
         </tr>`).join('')}`;
       qs('#tableScorers').innerHTML = `
         <tr class='text-left text-xs text-gray-500'><th>#</th><th>Jogador</th><th>Clube</th><th>Gols</th></tr>
-        ${store.k.scorers.map((s,i)=>`<tr class='border-t border-gray-100 dark:border-gray-800'><td>${i+1}</td><td>${s.name}</td><td>${s.club}</td><td class='font-bold'>${s.g}</td></tr>`).join('')}`;
+        <tr><td colspan='4' class='text-gray-500 text-center py-2'>Sem artilheiros ainda.</td></tr>`; // Always empty
     }
 
     // ===== Grupos =====
     const GROUPS = [
       {id:'g1', name:'CBFD League One', cat:'Campeonatos'},
       {id:'g2', name:'Copa CBFD', cat:'Campeonatos'},
+      {id:'g3', name:'Futebol de Base', cat:'Categorias'},
+      {id:'g4', name:'Futebol Feminino', cat:'Categorias'},
+      {id:'g5', name:'Notícias e Debates', cat:'Geral'},
+      {id:'g6', name:'Memes do Futebol', cat:'Entretenimento'},
       ...CLUBS.slice(0,8).map((c,i)=>({id:'c'+i, name:c, cat:'Clubes'})),
       {id:'f1', name:'Apostadores CBFD', cat:'Fãs'},
       {id:'f2', name:'Mercado & Transferências', cat:'Fãs'}
     ];
+
+    function ensureGroupsData() {
+      const s = store.k;
+      GROUPS.forEach(g => {
+        if (!s.groups[g.id]) {
+          s.groups[g.id] = { ...g, messages: [] };
+        }
+      });
+      store.k = s;
+    }
+
     function renderGroups(){
+      ensureGroupsData();
       const u = (store.k.users||{})[store.user?.email||''];
       const joined = new Set(u?.groups||[]);
       qs('#groupsGrid').innerHTML = GROUPS.map(g=>`<div class='bg-white dark:bg-dark rounded-xl shadow p-4'>
         <div class='text-xs text-gray-500 mb-1'>${g.cat}</div>
         <div class='font-bold mb-2'>${g.name}</div>
         <button class='px-3 py-1 rounded ${joined.has(g.id)?'bg-gray-200 dark:bg-gray-800':'bg-primary text-black font-bold'}' onclick='toggleGroup("${g.id}")'>${joined.has(g.id)?'Sair':'Participar'}</button>
+        <button class='ml-2 px-3 py-1 rounded bg-secondary text-white' onclick='openCommunityChat("${g.id}")'>Abrir Chat</button>
       </div>`).join('');
     }
     window.toggleGroup = function(id){
@@ -835,6 +1711,88 @@
       const i=u.groups.indexOf(id); if(i>=0) u.groups.splice(i,1); else u.groups.push(id);
       const s=store.k; s.users[u.email]=u; store.k=s; renderGroups();
     }
+
+    let currentChatGroupId = null;
+    function openCommunityChat(groupId) {
+      if (!requireAuth()) return;
+      currentChatGroupId = groupId;
+      const group = store.k.groups[groupId];
+      if (!group) return;
+
+      qs('#chatCommunityName').textContent = group.name;
+      renderChatMessages();
+
+      qs('#communityChatModal').classList.remove('hidden');
+      qs('#communityChatModal').classList.add('flex');
+    }
+
+    function renderChatMessages() {
+      const group = store.k.groups[currentChatGroupId];
+      const chatMessagesDiv = qs('#chatMessages');
+      chatMessagesDiv.innerHTML = group.messages.map(msg => {
+        const sender = store.k.users[msg.email];
+        return `
+          <div class="flex items-start gap-2">
+            <div class="w-8 h-8 flex items-center justify-center text-lg">${emojiForUser(sender)}</div>
+            <div>
+              <div class="font-bold text-sm">${sender.name} <span class="text-gray-500 text-xs">${sender.handle}</span></div>
+              <p class="text-gray-800 dark:text-gray-200 text-sm">${formatPostText(msg.text)}</p>
+              <span class="text-gray-500 text-xs">${new Date(msg.ts).toLocaleTimeString()}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+      chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight; // Scroll to bottom
+    }
+
+    qs('#sendChatMessage').addEventListener('click', () => {
+      if (!currentChatGroupId) return;
+      const chatInput = qs('#chatInput');
+      const messageText = chatInput.value.trim();
+      if (messageText) {
+        const s = store.k;
+        const group = s.groups[currentChatGroupId];
+        if (group) {
+          group.messages.push({
+            email: store.user.email,
+            text: messageText,
+            ts: Date.now()
+          });
+          store.k = s;
+          chatInput.value = '';
+          renderChatMessages();
+          checkMentions(messageText, store.user.email);
+        }
+      }
+    });
+
+    qs('#closeCommunityChat').addEventListener('click', () => {
+      qs('#communityChatModal').classList.add('hidden');
+      qs('#communityChatModal').classList.remove('flex');
+      currentChatGroupId = null;
+    });
+
+    // Simulate real-time messages
+    setInterval(() => {
+      if (currentChatGroupId) {
+        const group = store.k.groups[currentChatGroupId];
+        if (group && Math.random() < 0.2) { // 20% chance to receive a random message
+          const randomUser = sample(Object.values(store.k.users).filter(u => u.email !== store.user.email));
+          if (randomUser) {
+            const randomMessage = sample([
+              'Olá a todos!', 'Que dia incrível para o futebol!', 'Alguém viu o último jogo?', 'Concordo plenamente!', 'Isso é muito interessante.', 'Bom ponto!', 'O que vocês acham disso?'
+            ]);
+            group.messages.push({
+              email: randomUser.email,
+              text: randomMessage,
+              ts: Date.now()
+            });
+            store.k = store.k;
+            renderChatMessages();
+          }
+        }
+      }
+    }, 5000); // Every 5 seconds
 
     // ===== Live =====
     qs('#setLive').addEventListener('click', ()=>{
@@ -909,7 +1867,7 @@
       const start = Date.now();
       const dur = 1400 + Math.random()*600;
       const timer = setInterval(()=>{
-        if(label==='goals') el.textContent = String(rand(0, 5));
+        if(label==='goals') el.textContent = String(rand(0, 12)); // ALTERADO: rand(0, 5) para rand(0, 12)
         if(label==='ou') el.textContent = sample(['Over 1.5','Over 2.5','Over 3.5','Under 1.5','Under 2.5','Under 3.5']);
         if(label==='perf') el.textContent = sample(['⭐️⭐️⭐️⭐️⭐️','⭐️⭐️⭐️⭐️','⭐️⭐️⭐️','⭐️⭐️','⭐️']);
         if(Date.now()-start>dur){ clearInterval(timer); cb(el.textContent); }
@@ -940,7 +1898,7 @@
       const goals = parseInt(goalsText)||0;
       if(ou==='—' || perfText==='—') return alert('Gire todas as roletas antes.');
       const car = getCareer();
-      // Update player
+      // Update player (for career mode only, not global stats)
       car.statsPlayer.gols += goals;
       car.statsPlayer.assist += Math.max(0, Math.floor(goals*Math.random()));
       const perfMap = { '⭐️':1, '⭐️⭐️':2, '⭐️⭐️⭐️':3, '⭐️⭐️⭐️⭐️':4, '⭐️⭐️⭐️⭐️⭐️':5 };
@@ -963,15 +1921,6 @@
       // Save match in history
       car.history.push({ ts:Date.now(), club:car.club, goals, ou, perf:rating, teamGoals, oppGoals });
       saveCareer(car);
-      // Also nudge global scorers
-      const s=store.k;
-      if(s.scorers){
-        const meName = (s.users[store.user.email]?.name)||'Você';
-        const idx = s.scorers.findIndex(x=> x.name.startsWith(meName.charAt(0)) && x.club===car.club);
-        if(idx>=0) s.scorers[idx].g += goals; else s.scorers.unshift({name: meName, club:car.club, g:goals});
-        s.scorers = s.scorers.sort((a,b)=>b.g-a.g).slice(0,10);
-        store.k=s;
-      }
       addNotif(`Resultado aplicado · ${car.club} ${teamGoals}x${oppGoals} · Você fez ${goals} gol(s)`);
       fillSeasonUI();
     });
@@ -994,21 +1943,73 @@
     (function init(){
       // Fill selects
       fillClubSelect(qs('#authClubSelect'));
+      fillProfileEmojiSelect(qs('#editProfileEmoji'));
       toggleAuthFields();
       const savedRoute = localStorage.getItem('cbfd_route') || 'feed';
       go(savedRoute);
       renderFeed();
+      ensureClubProfiles(); // Initialize club profiles on load
+
+      // Ensure luccaburrows user exists with default password and bio
+      const s = store.k;
+      const luccaEmail = 'luccaburrows@cbfd.com';
+      if (!s.users[luccaEmail]) {
+        s.users[luccaEmail] = {
+          email: luccaEmail,
+          name: 'Luccaburrows',
+          type: 'owner',
+          club: '',
+          handle: '@luccaburrows',
+          verified: true,
+          wallet: 999999999, // Example large wallet for owner
+          emoji: EMOJI_BY_NAME['luccaburrows'],
+          stats: { followers: 1000, following: rand(10, 50), posts: 0 },
+          achievements: [],
+          groups: [],
+          wannaPlay: false,
+          contracts: [],
+          likedPosts: [],
+          bio: "Fundador da CBFD Network. Apaixonado por futebol virtual e inovação. Conectando a comunidade!"
+        };
+        store.k = s;
+      }
     })();
+
+    // ===== Admin/Owner Panels =====
+    function openOwnerPanel(){ qs('#ownerPanelModal').classList.remove('hidden'); qs('#ownerPanelModal').classList.add('flex'); }
+    function closeOwnerPanel(){ qs('#ownerPanelModal').classList.add('hidden'); qs('#ownerPanelModal').classList.remove('flex'); }
+    function openAdminPanel(){ qs('#adminPanelModal').classList.remove('hidden'); qs('#adminPanelModal').classList.add('flex'); }
+    function closeAdminPanel(){ qs('#adminPanelModal').classList.add('hidden'); qs('#adminPanelModal').classList.remove('flex'); }
+
+    qs('#closeOwnerPanel').addEventListener('click', closeOwnerPanel);
+    qs('#closeAdminPanel').addEventListener('click', closeAdminPanel);
+
+    qs('#createAdminBtn').addEventListener('click', ()=>{
+      addNotif('Ação do Dono: Admin criado (simulado)');
+      closeOwnerPanel();
+    });
+    qs('#exportLogsBtn').addEventListener('click', ()=>{
+      addNotif('Ação do Dono: Logs exportados (simulado)');
+      closeOwnerPanel();
+    });
+    qs('#suspendUserBtn').addEventListener('click', ()=>{
+      addNotif('Ação do Admin: Usuário suspenso (simulado)');
+      closeAdminPanel();
+    });
+    qs('#publishNewsBtn').addEventListener('click', ()=>{
+      addNotif('Ação do Admin: Notícia publicada (simulado)');
+      closeAdminPanel();
+    });
 
     // Keyboard shortcuts for special users (painéis placeholders)
     document.addEventListener('keydown', (e)=>{
       if(e.ctrlKey && e.shiftKey && e.key.toLowerCase()==='u'){
         const u=store.k.users[store.user?.email||''];
-        if(u && u.handle.replace('@','')==='luccaburrows') alert('Painel do Dono — (placeholder)');
+        if(u && u.handle.replace('@','')==='luccaburrows') openOwnerPanel();
       }
       if(e.ctrlKey && e.shiftKey && e.key.toLowerCase()==='a'){
         const u=store.k.users[store.user?.email||''];
-        if(u && u.handle.replace('@','')==='prxdo10') alert('Painel de Admin — (placeholder)');
+        if(u && u.handle.replace('@','')==='prxdo10') openAdminPanel();
       }
     });
   </script>
