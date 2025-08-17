@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CBFD NETWORK - REDE SOCIAL OFICIAL DA CBFD</title>
+  <meta name="color-scheme" content="dark light" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Oswald:wght@500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: "#00ff88",
+            secondary: "#0077ff",
+            dark: "#101014",
+            darker: "#0b0c0f",
+            accent: "#ff2d6b",
+            "v-coin": "#ffd700",
+          },
+          fontFamily: {
+            sans: ["Montserrat", "ui-sans-serif", "system-ui"],
+            display: ["Oswald", "ui-sans-serif", "system-ui"],
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    .gradient-bg { background: linear-gradient(135deg, #0077ff 0%, #00ff88 100%); }
+    .gradient-text { background: linear-gradient(90deg, #00ff88, #0077ff); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .verified::after{ content:"\f058"; font-family:'Font Awesome 6 Free'; font-weight:900; margin-left:.4rem; color:#1d9bf0; }
+    .badge{ font-size:.75rem; padding:.15rem .5rem; border-radius:999px; }
+    .post-card{ transition:transform .2s ease, box-shadow .2s ease; }
+    .post-card:hover{ transform:translateY(-2px); box-shadow:0 8px 24px rgba(0,0,0,.15) }
+    .scrollbar-hide{ scrollbar-width:none } .scrollbar-hide::-webkit-scrollbar{ display:none }
+    .glow{ box-shadow:0 0 0 3px rgba(0,255,136,.25); }
+    .spin { animation: spin 1.2s linear infinite; }
+    @keyframes spin { from {transform: rotate(0)} to {transform: rotate(360deg)} }
+  </style>
+</head>
+<body class="bg-gray-100 dark:bg-darker text-gray-900 dark:text-gray-100 font-sans">
+  <!-- HEADER -->
+  <header class="bg-white/80 dark:bg-dark/80 backdrop-blur border-b border-gray-200 dark:border-gray-800 sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full gradient-bg text-white font-extrabold flex items-center justify-center">⚽</div>
+        <h1 class="text-xl font-bold gradient-text">CBFD NETWORK</h1>
+      </div>
+      <nav class="hidden md:flex items-center gap-6 text-sm">
+        <a data-route="feed" class="hover:text-primary cursor-pointer">Início</a>
+        <a data-route="bets" class="hover:text-primary cursor-pointer">Apostas</a>
+        <a data-route="clubs" class="hover:text-primary cursor-pointer">Clubes</a>
+        <a data-route="market" class="hover:text-primary cursor-pointer">Marketplace</a>
+        <a data-route="stats" class="hover:text-primary cursor-pointer">Estatísticas</a>
+        <a data-route="groups" class="hover:text-primary cursor-pointer">Comunidades</a>
+        <a data-route="live" class="hover:text-primary cursor-pointer">Transmissões</a>
+        <a data-route="games" class="hover:text-primary cursor-pointer">Jogos</a>
+        <a data-route="links" class="hover:text-primary cursor-pointer">Oficial</a>
+      </nav>
+      <div class="flex items-center gap-3">
+        <button id="themeToggle" class="w-9 h-9 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+          <i class="fa-solid fa-moon dark:hidden"></i>
+          <i class="fa-solid fa-sun hidden dark:block"></i>
+        </button>
+        <button id="notifBtn" class="relative w-9 h-9 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+          <i class="fa-regular fa-bell"></i>
+          <span id="notifDot" class="hidden absolute -top-1 -right-1 w-3 h-3 bg-accent rounded-full"></span>
+        </button>
+        <button id="openAuth" class="bg-primary text-black px-4 py-2 rounded-lg font-semibold">Entrar</button>
+        <div id="userMenu" class="hidden items-center gap-2">
+          <div id="userEmoji" class="w-9 h-9 flex items-center justify-center text-xl">👤</div>
+          <div class="text-sm leading-tight">
+            <div id="userName" class="font-bold">—</div>
+            <div id="userHandle" class="text-gray-500 dark:text-gray-400">@—</div>
+          </div>
+          <span id="wallet" class="ml-2 text-xs px-2 py-1 rounded bg-yellow-200 text-yellow-900 dark:bg-yellow-700 dark:text-yellow-100">0 V-COINS</span>
+          <button id="logoutBtn" class="ml-2 text-xs px-2 py-1 rounded bg-gray-200 dark:bg-gray-700">Sair</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ROUTER CONTENT -->
+  <main class="max-w-7xl mx-auto px-4 py-6">
+    <!-- FEED -->
+    <section id="page-feed" class="hidden">
+      <div class="grid md:grid-cols-3 gap-6">
+        <div class="md:col-span-2 space-y-4">
+          <div class="bg-white dark:bg-dark rounded-xl shadow p-4">
+            <div class="flex items-center gap-3">
+              <div id="composerEmoji" class="w-10 h-10 flex items-center justify-center text-xl">😀</div>
+              <input id="postText" type="text" placeholder="Escreva sobre jogos, campeonatos, notícias..." class="flex-1 rounded-full px-4 py-2 bg-gray-100 dark:bg-gray-800 focus:outline-none"/>
+            </div>
+            <div class="flex items-center gap-2 mt-3 text-sm">
+              <span class="badge bg-gray-200 dark:bg-gray-700 cursor-pointer" onclick="insertHash('#CBFD')">#CBFD</span>
+              <span class="badge bg-gray-200 dark:bg-gray-700 cursor-pointer" onclick="insertHash('#Transferências')">#Transferências</span>
+              <span class="badge bg-gray-200 dark:bg-gray-700 cursor-pointer" onclick="insertHash('#Final')">#Final</span>
+              <button id="publishPost" class="ml-auto bg-primary text-black font-bold px-4 py-1.5 rounded-lg">Postar</button>
+            </div>
+          </div>
+          <div id="feedList" class="space-y-4"></div>
+        </div>
+
+        <aside class="space-y-4">
+          <div class="bg-white dark:bg-dark rounded-xl shadow p-4">
+            <div class="flex items-center gap-2">
+              <div class="text-2xl">🏅</div>
+              <h3 class="font-bold">Conquistas</h3>
+            </div>
+            <ul id="achievementsList" class="mt-2 text-sm text-gray-600 dark:text-gray-300"></ul>
+          </div>
+          <div class="bg-white dark:bg-dark rounded-xl shadow p-4">
+            <div class="flex items-center gap-2">
+              <div class="text-2xl">🔔</div>
+              <h3 class="font-bold">Notificações</h3>
+            </div>
+            <ul id="notifList" class="mt-2 text-sm text-gray-600 dark:text-gray-300"></ul>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- APOSTAS -->
+    <section id="page-bets" class="hidden">
+      <div class="grid md:grid-cols-3 gap-6">
+        <div class="md:col-span-2 space-y-4">
+          <div class="bg-white dark:bg-dark rounded-xl shadow p-4">
+            <div class="flex items-center gap-2">
+              <div class="text-2xl">🎲</div>
+              <h3 class="font-bold">Partidas e Odds</h3>
+            </div>
+            <div id="matchList" class="mt-3 grid gap-3"></div>
+            <div id="clubBetWarning" class="hidden mt-3 text-xs bg-yellow-100 text-yellow-900 dark:bg-yellow-900 dark:text-yellow-100 rounded p-2">
+              Clubes oficiais não podem apostar. Entre com uma conta de <b>Jogador</b> ou <b>Torcedor</b>.
+            </div>
+          </div>
+          <div class="bg-white dark:bg-dark rounded-xl shadow p-4">
+            <div class="flex items-center gap-2"><div class="text-2xl">🧾</div><h3 class="font-bold">Histórico</h3></div>
+            <div id="betsHistory" class="mt-3 text-sm"></div>
+          </div>
+        </div>
+        <aside class="space-y-4">
+          <div class="bg-white dark:bg-dark rounded-xl shadow p-4">
+            <div class="flex items-center gap-2"><div class="text-2xl">🏆</div><h3 class="font-bold">Top Apostadores</h3></div>
+            <ol id="topBettors" class="mt-3 list-decimal pl-5 text-sm"></ol>
+          </div>
+          <div class="bg-white dark:bg-dark rounded-xl shadow p-4">
+            <div class="flex items-center gap-2"><div class="text-2xl">💰</div><h3 class="font-bold">Carteira</h3></div>
+            <div id="walletBets" class="mt-2 font-bold"></div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- CLUBES -->
+    <section id="page-clubs" class="hidden">
+      <div class="bg-white dark:bg-dark rounded-xl shadow p-4">
+        <div class="flex items-center gap-2"><div class="text-2xl">🏟️</div><h3 class="font-bold">Clubes</h3></div>
+        <div id="clubsGrid" class="mt-4 grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+      </div>
+    </section>
+
+    <!-- MARKETPLACE -->
+    <section id="page-market" class="hidden">
+      <div class="grid md:grid-cols-3 gap-6">
+        <div class="md:col-span-2 space-y-4">
+          <div class="bg-white dark:bg-dark rounded-xl shadow p-4">
+            <div class="flex items-center gap-2"><div class="text-2xl">🛒</div><h3 class="font-bold">Marketplace de Jogadores</h3></div>
+            <div class="grid md:grid-cols-6 gap-2 mt-3 text-sm">
+              <select id="fContract" class="bg-gray-100 dark:bg-gray-800 rounded px-2 py-1"><option value="">Contrato</option><option value="livre">Livre</option><option value="emprestimo">Empréstimo</option><option value="pago">Transferência paga</option></select>
+              <select id="fPos" class="bg-gray-100 dark:bg-gray-800 rounded px-2 py-1">
+                <option value="">Posição</option><option>Goleiro</option><option>Zagueiro</option><option>Lateral</option><option>Meio-campo</option><option>Atacante</option></select>
+              <input id="fPriceMin" type="number" placeholder="Preço min" class="bg-gray-100 dark:bg-gray-800 rounded px-2 py-1" />
+              <input id="fPriceMax" type="number" placeholder="Preço máx" class="bg-gray-100 dark:bg-gray-800 rounded px-2 py-1" />
+              <input id="fAge" type="number" placeholder="Idade" class="bg-gray-100 dark:bg-gray-800 rounded px-2 py-1" />
+              <select id="fVerified" class="bg-gray-100 dark:bg-gray-800 rounded px-2 py-1"><option value="">Status</option><option value="true">Verificado</option><option value="false">Não verificado</option></select>
+              <input id="fClub" type="text" placeholder="Clube atual" class="bg-gray-100 dark:bg-gray-800 rounded px-2 py-1 md:col-span-3" />
+              <input id="fHistory" type="text" placeholder="Histórico (títulos, jogos...)" class="bg-gray-100 dark:bg-gray-800 rounded px-2 py-1 md:col-span-2" />
+              <button id="applyFilters" class="bg-secondary text-white rounded px-3 py-1">Filtrar</button>
+            </div>
+            <div id="marketList" class="mt-4 grid sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+          </div>
+
+          <div class="bg-white dark:bg-dark rounded-xl shadow p-4">
+            <div class="flex items-center gap-2"><div class="text-2xl">🏢</div><h3 class="font-bold">Agência de Jogadores</h3></div>
+            <div id="agencyList" class="mt-3 grid sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+          </div>
+        </div>
+        <aside class="space-y-4">
+          <div class="bg-white dark:bg-dark rounded-xl shadow p-4">
+            <div class="flex items-center gap-2"><div class="text-2xl">💼</div><h3 class="font-bold">Carteira</h3></div>
+            <div id="walletMarket" class="mt-2 font-bold"></div>
+          </div>
+          <div class="bg-white dark:bg-dark rounded-xl shadow p-4">
+            <div class="flex items-center gap-2"><div class="text-2xl">📈</div><h3 class="font-bold">Ranking do Mercado</h3></div>
+            <ul id="marketRanking" class="mt-2 text-sm"></ul>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ESTATÍSTICAS -->
+    <section id="page-stats" class="hidden">
+      <div class="grid md:grid-cols-2 gap-6">
+        <div class="bg-white dark:bg-dark rounded-xl shadow p-4">
+          <div class="flex items-center gap-2"><div class="text-2xl">📊</div><h3 class="font-bold">Classificação CBFD</h3></div>
+          <table class="w-full mt-3 text-sm" id="tableStandings"></table>
+        </div>
+        <div class="bg-white dark:bg-dark rounded-xl shadow p-4">
+          <div class="flex items-center gap-2"><div class="text-2xl">🎯</div><h3 class="font-bold">Artilharia</h3></div>
+          <table class="w-full mt-3 text-sm" id="tableScorers"></table>
+        </div>
+      </div>
+    </section>
+
+    <!-- COMUNIDADES -->
+    <section id="page-groups" class="hidden">
+      <div class="bg-white dark:bg-dark rounded-xl shadow p-4">
+        <div class="flex items-center gap-2"><div class="text-2xl">👥</div><h3 class="font-bold">Comunidades & Grupos</h3></div>
+        <div id="groupsGrid" class="mt-4 grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+      </div>
+    </section>
+
+    <!-- LIVE -->
+    <section id="page-live" class="hidden">
+      <div class="bg-white dark:bg-dark rounded-xl shadow p-4">
+        <div class="flex items-center gap-2"><div class="text-2xl">🔴</div><h3 class="font-bold">Transmissões ao vivo</h3></div>
+        <div class="mt-3 grid md:grid-cols-3 gap-3">
+          <input id="liveUrl" class="bg-gray-100 dark:bg-gray-800 rounded px-2 py-1 md:col-span-2" placeholder="Cole link da live (YouTube ou Twitch)" />
+          <button id="setLive" class="bg-primary text-black rounded px-3 py-1 font-bold">Carregar</button>
+        </div>
+        <div class="mt-4 aspect-video bg-black rounded overflow-hidden">
+          <iframe id="liveYT" class="w-full h-full" src="" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+        </div>
+      </div>
+    </section>
+
+    <!-- LINKS OFICIAIS -->
+    <section id="page-links" class="hidden">
+      <div class="bg-white dark:bg-dark rounded-xl shadow p-4">
+        <div class="flex items-center gap-2"><div class="text-2xl">🔗</div><h3 class="font-bold">Área Oficial</h3></div>
+        <ul class="mt-2 text-blue-600 dark:text-blue-400 underline">
+          <li><a href="https://youtube.com/@redeesportivavirtual?si=6H2wjUSOK9aLh86L" target="_blank">YouTube Oficial</a></li>
+          <li><a href="https://www.instagram.com/cbfdvrtl?igsh=MWhncXFqeTBlN2duaQ%3D%3D&utm_source=qr" target="_blank">Instagram Oficial</a></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- JOGOS - Modo Carreira -->
+    <section id="page-games" class="hidden">
+      <div class="bg-white dark:bg-dark rounded-xl shadow p-4">
+        <div class="flex items-center gap-2"><div class="text-2xl">🎮</div><h3 class="font-bold">Modo Carreira do Jogador</h3></div>
+        <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">Escolha um clube oficial da CBFD, gire as roletas e avance sua temporada. Tudo fica salvo no seu navegador.</p>
+        <div class="grid md:grid-cols-3 gap-4 mt-4">
+          <div class="space-y-2">
+            <label class="text-xs text-gray-500">Clube da Temporada</label>
+            <select id="careerClub" class="w-full bg-gray-100 dark:bg-gray-800 rounded px-3 py-2"></select>
+            <label class="text-xs text-gray-500">Partidas na Temporada</label>
+            <input id="careerMatches" type="number" min="10" max="38" value="20" class="w-full bg-gray-100 dark:bg-gray-800 rounded px-3 py-2" />
+            <button id="careerStart" class="w-full bg-primary text-black font-bold rounded px-3 py-2">Iniciar/Atualizar Temporada</button>
+          </div>
+          <div class="md:col-span-2 grid sm:grid-cols-3 gap-3">
+            <!-- Roletas -->
+            <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-3 text-center">
+              <div class="text-xs text-gray-500">Gols do Jogador</div>
+              <div id="rollGoals" class="text-4xl font-extrabold my-2">0</div>
+              <button data-spin="goals" class="spinBtn w-full bg-secondary text-white rounded px-3 py-1">Girar</button>
+            </div>
+            <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-3 text-center">
+              <div class="text-xs text-gray-500">Over/Under Gols do Time</div>
+              <div id="rollOU" class="text-2xl font-extrabold my-2">—</div>
+              <button data-spin="ou" class="spinBtn w-full bg-secondary text-white rounded px-3 py-1">Girar</button>
+            </div>
+            <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-3 text-center">
+              <div class="text-xs text-gray-500">Desempenho Geral</div>
+              <div id="rollPerf" class="text-2xl font-extrabold my-2">—</div>
+              <button data-spin="perf" class="spinBtn w-full bg-secondary text-white rounded px-3 py-1">Girar</button>
+            </div>
+          </div>
+        </div>
+        <div class="grid md:grid-cols-2 gap-4 mt-4">
+          <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+            <div class="flex items-center gap-2"><div class="text-xl">🧑‍🎤</div><h4 class="font-bold">Estatísticas do Jogador (Temporada)</h4></div>
+            <ul id="playerSeason" class="mt-2 text-sm"></ul>
+          </div>
+          <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+            <div class="flex items-center gap-2"><div class="text-xl">🛡️</div><h4 class="font-bold">Estatísticas do Clube (Temporada)</h4></div>
+            <ul id="clubSeason" class="mt-2 text-sm"></ul>
+          </div>
+        </div>
+        <div class="mt-4 flex flex-wrap gap-2">
+          <button id="careerAdvance" class="bg-primary text-black font-bold rounded px-3 py-2">Aplicar Resultado das Roletas</button>
+          <button id="careerReset" class="bg-gray-200 dark:bg-gray-700 rounded px-3 py-2">Resetar Temporada</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="mt-10 py-8 border-t border-gray-200 dark:border-gray-800 text-sm text-gray-600 dark:text-gray-400 text-center">
+    © <span id="year"></span> CBFD NETWORK — Rede Social Oficial da CBFD.
+  </footer>
+
+  <!-- AUTH MODAL -->
+  <div id="authModal" class="hidden fixed inset-0 bg-black/60 z-50 items-center justify-center p-4">
+    <div class="bg-white dark:bg-dark rounded-xl shadow max-w-lg w-full p-6">
+      <div class="flex items-center gap-2 mb-3">
+        <div class="text-2xl">🔐</div>
+        <h3 class="font-bold">Entrar na CBFD NETWORK</h3>
+      </div>
+      <div class="text-sm text-gray-600 dark:text-gray-300">Faça login com e-mail. Escolha seu tipo de conta.</div>
+      <div class="grid md:grid-cols-2 gap-3 mt-4">
+        <div class="space-y-2">
+          <input id="authEmail" type="email" placeholder="Seu e-mail" class="w-full bg-gray-100 dark:bg-gray-800 rounded px-3 py-2">
+          <input id="authName" type="text" placeholder="Seu nome" class="w-full bg-gray-100 dark:bg-gray-800 rounded px-3 py-2">
+          <select id="authType" class="w-full bg-gray-100 dark:bg-gray-800 rounded px-3 py-2">
+            <option value="player">Jogador</option>
+            <option value="team">Time</option>
+            <option value="fan">Torcedor</option>
+          </select>
+          <select id="authClubSelect" class="w-full bg-gray-100 dark:bg-gray-800 rounded px-3 py-2 hidden"></select>
+          <input id="authClub" type="text" placeholder="Clube (para conta de Time)" class="w-full bg-gray-100 dark:bg-gray-800 rounded px-3 py-2 hidden">
+          <label class="flex items-center gap-2 text-sm"><input id="authWanna" type="checkbox" class=""> <span>Sou torcedor e <b>quero virar jogador</b></span></label>
+        </div>
+        <div class="space-y-2">
+          <button id="btnEmailLogin" class="w-full bg-primary text-black font-bold rounded px-3 py-2">Entrar com E-mail</button>
+          <div class="text-xs text-gray-500">Ao continuar, você aceita os termos e confirma que é maior de 13 anos.</div>
+        </div>
+      </div>
+      <div class="mt-4 text-right">
+        <button id="closeAuth" class="text-sm px-3 py-1 rounded bg-gray-200 dark:bg-gray-700">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- NOTIF POP -->
+  <div id="notifPop" class="hidden fixed right-4 bottom-4 bg-white dark:bg-dark shadow rounded-xl p-3 border border-gray-200 dark:border-gray-700"></div>
+
+  <script>
+    // ===== Utilities =====
+    const qs = (s,sc=document)=>sc.querySelector(s);
+    const qsa = (s,sc=document)=>Array.from(sc.querySelectorAll(s));
+    const coins = n => `${(n||0).toLocaleString('pt-BR')} V-COINS`;
+    const sample = arr => arr[Math.floor(Math.random()*arr.length)];
+    const rand = (a,b)=> Math.floor(Math.random()*(b-a+1))+a;
+
+    // Clubes oficiais (exatamente os fornecidos)
+    const CLUBS = [
+      "VASXCUDO","PAZULS FC","MENGUDO","ACRZ","CELESTIAL","PORTXZVX","FC MADRILENOS","KIDS FC","FC CORRUPÇÃO","MONTE VERDE","ROYAL PARISIAN","REAL CHELSEA","CR PORCOS","LYNX","FC VENCEDORES","EC VITÓRIA","INTER DE MILHÃO","ROMA"
+    ];
+
+    const POS = ["Goleiro","Zagueiro","Lateral","Meio-campo","Atacante"];
+    const EMOJI_BY_ROLE = { player:"🧑‍🎤", team:"🛡️", fan:"🙌" };
+
+    const DEFAULT_STORE = {
+      users:{}, // email -> user
+      posts:[],
+      matches:[],
+      bets:[], // {email, matchId, pick, stake, odds, result}
+      notifications:[],
+      standings:null,
+      scorers:null,
+      marketActions:[],
+      career:{} // email -> {club, season, matches, statsPlayer, statsClub, history[]}
+    };
+
+    const store = {
+      get k(){ return JSON.parse(localStorage.getItem('cbfd_store')||'null') || DEFAULT_STORE; },
+      set k(v){ localStorage.setItem('cbfd_store', JSON.stringify(v)); },
+      user: JSON.parse(localStorage.getItem('cbfd_user')||'null')
+    };
+
+    function addNotif(msg){
+      const s=store.k; s.notifications.push({msg, ts:Date.now()}); store.k=s;
+      qs('#notifDot').classList.remove('hidden');
+      const pop = qs('#notifPop'); pop.textContent = msg; pop.classList.remove('hidden'); pop.classList.add('glow');
+      setTimeout(()=>{ pop.classList.add('hidden'); pop.classList.remove('glow'); }, 2500);
+      renderNotifList();
+    }
+
+    function award(key){
+      if(!store.user) return;
+      const ACH = {
+        primeira_postagem:'Primeira Postagem',
+        apostador_iniciante:'Apostador Iniciante',
+        negociador:'Negociador',
+        mercado_ativo:'Mercado Ativo'
+      };
+      const u=(store.k.users||{})[store.user.email];
+      if(!u.achievements.includes(key)){
+        u.achievements.push(key);
+        const s=store.k; s.users[u.email]=u; store.k=s;
+        addNotif('Conquista desbloqueada: '+ACH[key]);
+        hydrateProfile();
+      }
+    }
+
+    function emojiForUser(u){ return u.emoji || EMOJI_BY_ROLE[u.type] || "👤"; }
+
+    // ===== Router =====
+    function go(route){
+      qsa('section[id^="page-"]').forEach(el=> el.classList.add('hidden'));
+      qs('#page-'+route).classList.remove('hidden');
+      // Save route
+      localStorage.setItem('cbfd_route', route);
+      if(route==='bets'){ renderBetsPage(); }
+      if(route==='market'){ renderMarket(); renderAgency(); }
+      if(route==='stats'){ renderStats(); }
+      if(route==='groups'){ renderGroups(); }
+      if(route==='clubs'){ renderClubsPage(); }
+      if(route==='feed'){ renderFeed(); }
+      if(route==='live'){ /* nothing */ }
+      if(route==='games'){ renderGamesPage(); }
+    }
+    qsa('[data-route]').forEach(a=> a.addEventListener('click', ()=> go(a.getAttribute('data-route'))));
+
+    // ===== Theme =====
+    function applyTheme(){
+      const dark = localStorage.getItem('cbfd_theme')==='dark';
+      document.documentElement.classList.toggle('dark', dark);
+    }
+    qs('#themeToggle').addEventListener('click', ()=>{
+      const dark = !(localStorage.getItem('cbfd_theme')==='dark');
+      localStorage.setItem('cbfd_theme', dark?'dark':'light'); applyTheme();
+    });
+    applyTheme();
+
+    // ===== Auth =====
+    function fillClubSelect(el){ el.innerHTML = '<option value="">Selecione seu clube</option>' + CLUBS.map(c=>`<option>${c}</option>`).join(''); }
+
+    function toggleAuthFields(){
+      const type = qs('#authType').value;
+      const sel = qs('#authClubSelect');
+      const inp = qs('#authClub');
+      if(type==='player'){
+        sel.classList.remove('hidden'); inp.classList.add('hidden');
+      }else if(type==='team'){
+        sel.classList.add('hidden'); inp.classList.remove('hidden');
+      }else{
+        sel.classList.add('hidden'); inp.classList.add('hidden');
+      }
+    }
+    qs('#authType').addEventListener('change', toggleAuthFields);
+
+    function openAuth(){ qs('#authModal').classList.remove('hidden'); qs('#authModal').classList.add('flex'); }
+    function closeAuth(){ qs('#authModal').classList.add('hidden'); qs('#authModal').classList.remove('flex'); }
+    qs('#openAuth').addEventListener('click', openAuth);
+    qs('#closeAuth').addEventListener('click', closeAuth);
+
+    function completeLogin(email, name, type, club, wanna){
+      const s=store.k;
+      const handle='@'+(name||email.split('@')[0]).toLowerCase().replace(/[^a-z0-9_]/g,'');
+      if(!s.users[email]){
+        let baseWallet = 5000;
+        if(type==='team') baseWallet = 30000000; // Clubes iniciam com 30.000.000 V-COINS
+        s.users[email]={ email, name:name||email.split('@')[0], type, club:club||"", handle, verified:(type!=='fan'), wallet: baseWallet, emoji: EMOJI_BY_ROLE[type], stats:{followers:rand(20,500), following:rand(5,200), posts:0}, achievements:[], groups:[], wannaPlay: !!wanna };
+      }else{
+        s.users[email].type = type;
+        s.users[email].club = club||s.users[email].club;
+        s.users[email].wannaPlay = !!wanna;
+      }
+      store.k = s;
+      store.user = { email };
+      localStorage.setItem('cbfd_user', JSON.stringify(store.user));
+      hydrateUI();
+      addNotif('Bem-vindo(a), '+s.users[email].name+'!');
+      closeAuth();
+    }
+
+    qs('#btnEmailLogin').addEventListener('click', ()=>{
+      const email=qs('#authEmail').value.trim();
+      if(!email || !email.includes('@')) return alert('Informe um e-mail válido');
+      const name=qs('#authName').value.trim()||email.split('@')[0];
+      const type=qs('#authType').value;
+      const club = type==='player' ? qs('#authClubSelect').value.trim() : (type==='team' ? qs('#authClub').value.trim() : '');
+      const wanna=qs('#authWanna').checked;
+      if(type==='player' && !CLUBS.includes(club)) return alert('Selecione um clube oficial da lista');
+      completeLogin(email, name, type, club, wanna);
+    });
+    qs('#logoutBtn').addEventListener('click', ()=>{
+      localStorage.removeItem('cbfd_user'); store.user=null; hydrateUI();
+    });
+
+    function requireAuth(){
+      if(!store.user){ openAuth(); return false; } return true;
+    }
+
+    // ===== Feed =====
+    function insertHash(tag){ const i=qs('#postText'); i.value = (i.value+' '+tag).trim(); i.focus(); }
+    function renderFeed(){
+      const s=store.k;
+      const list=qs('#feedList');
+      list.innerHTML = s.posts.slice().reverse().map(p=>{
+        const u = s.users[p.email]||{name:'—',handle:'@—',emoji:'👤', verified:false};
+        return `<article class='bg-white dark:bg-dark rounded-xl shadow post-card p-4'>
+          <div class='flex items-start gap-3'>
+            <div class="w-10 h-10 flex items-center justify-center text-xl">${u.emoji||'👤'}</div>
+            <div class='flex-1'>
+              <div class='flex items-center gap-2'>
+                <h4 class='font-bold'>${u.name}${u.verified?"<span class='verified'></span>":""}</h4>
+                <span class='text-sm text-gray-500'>${u.handle}</span>
+                <span class='text-sm text-gray-500'>· ${new Date(p.ts).toLocaleTimeString()}</span>
+              </div>
+              <p class='mt-2 whitespace-pre-wrap'>${p.text.replace(/#([A-Za-zÀ-ÿ0-9_]+)/g,"<span class='text-secondary'>#$1</span>").replace(/@([A-Za-z0-9_]+)/g,"<span class='text-primary'>@$1</span>")}</p>
+              <div class='mt-3 flex items-center justify-between text-gray-500 text-sm'>
+                <button class='hover:text-primary'><i class='fa-regular fa-heart'></i> ${p.likes||0}</button>
+                <button class='hover:text-primary'><i class='fa-regular fa-comment'></i> ${p.comments||0}</button>
+                <button class='hover:text-primary'><i class='fa-solid fa-retweet'></i> ${p.shares||0}</button>
+              </div>
+            </div>
+          </div>
+        </article>`;
+      }).join('') || "<div class='text-sm text-gray-500'>Sem postagens ainda.</div>";
+      hydrateProfile();
+      renderAchievements();
+    }
+
+    qs('#publishPost').addEventListener('click', ()=>{
+      if(!requireAuth()) return;
+      const text=qs('#postText').value.trim();
+      if(!text) return;
+      const s=store.k;
+      s.posts.push({ email:store.user.email, text, ts:Date.now(), likes:rand(0,99), comments:rand(0,20), shares:rand(0,10)});
+      s.users[store.user.email].stats.posts += 1;
+      store.k = s;
+      qs('#postText').value='';
+      award('primeira_postagem');
+      renderFeed();
+    });
+
+    function renderAchievements(){
+      const u = store.user? (store.k.users||{})[store.user.email] : null;
+      qs('#achievementsList').innerHTML = (u && u.achievements.length)? u.achievements.map(k=>{
+        const map={primeira_postagem:'📝 Primeira Postagem', apostador_iniciante:'🎲 Apostador Iniciante', negociador:'🤝 Negociador', mercado_ativo:'📤 Mercado Ativo'}; return `<li>${map[k]}</li>`;
+      }).join('') : "<li class='text-gray-500'>Nenhuma conquista ainda.</li>";
+    }
+
+    function renderNotifList(){
+      const s=store.k;
+      const last = s.notifications.slice(-8).reverse();
+      qs('#notifList').innerHTML = last.map(n=> `<li>• ${n.msg}</li>`).join('') || "<li class='text-gray-500'>Sem notificações.</li>";
+    }
+    qs('#notifBtn').addEventListener('click', ()=>{
+      qs('#notifDot').classList.add('hidden');
+      alert('Notificações recentes:\n\n- '+(store.k.notifications.slice(-3).map(n=>n.msg).reverse().join('\n- ')||'Nenhuma'));
+    });
+
+    // ===== Bets =====
+    function seedMatches(){
+      const s=store.k;
+      if(!s.matches || s.matches.length===0){
+        s.matches = Array.from({length:6}).map((_,i)=>{
+          const a = sample(CLUBS), b = sample(CLUBS.filter(x=>x!==a));
+          return { id:'m'+(i+1), a, b, oa:(Math.random()*2+1).toFixed(2), ob:(Math.random()*2+1).toFixed(2), draw:(Math.random()*2+1).toFixed(2), ts: Date.now()+rand(1,72)*3600*1000 };
+        });
+        store.k = s;
+      }
+    }
+    function renderBetsPage(){
+      seedMatches();
+      const s=store.k;
+      // Randomly nudge odds
+      s.matches.forEach(m=>{ m.oa=(Math.max(1.2, (parseFloat(m.oa)+(Math.random()-.5)*0.2))).toFixed(2);
+                             m.ob=(Math.max(1.2, (parseFloat(m.ob)+(Math.random()-.5)*0.2))).toFixed(2);
+                             m.draw=(Math.max(1.2, (parseFloat(m.draw)+(Math.random()-.5)*0.2))).toFixed(2); });
+      store.k = s;
+      const isClub = store.user && (store.k.users[store.user.email]?.type==='team');
+      qs('#clubBetWarning').classList.toggle('hidden', !isClub);
+      qs('#matchList').innerHTML = s.matches.map(m=> `
+        <div class="p-3 rounded-lg border border-gray-200 dark:border-gray-700 ${isClub?'opacity-60 pointer-events-none':''}">
+          <div class="flex items-center justify-between">
+            <div><b>${m.a}</b> vs <b>${m.b}</b><span class="text-xs text-gray-500"> · ${new Date(m.ts).toLocaleString()}</span></div>
+            <div class="text-xs text-gray-500">Odds dinâmicas</div>
+          </div>
+          <div class="grid grid-cols-3 gap-2 mt-2 text-sm">
+            <button class="betPick bg-gray-100 dark:bg-gray-800 rounded px-2 py-1" data-id="${m.id}" data-pick="${m.a}" data-odds="${m.oa}">${m.a} (${m.oa})</button>
+            <button class="betPick bg-gray-100 dark:bg-gray-800 rounded px-2 py-1" data-id="${m.id}" data-pick="Empate" data-odds="${m.draw}">Empate (${m.draw})</button>
+            <button class="betPick bg-gray-100 dark:bg-gray-800 rounded px-2 py-1" data-id="${m.id}" data-pick="${m.b}" data-odds="${m.ob}">${m.b} (${m.ob})</button>
+          </div>
+        </div>`).join('');
+      qsa('.betPick').forEach(btn=> btn.addEventListener('click', ()=> openBet(btn.dataset.id, btn.dataset.pick, parseFloat(btn.dataset.odds)) ));
+      renderBetsHistory();
+      renderTopBettors();
+      qs('#walletBets').textContent = coins(currentWallet());
+    }
+
+    function openBet(matchId, pick, odds){
+      if(!requireAuth()) return;
+      const u=(store.k.users||{})[store.user.email];
+      if(u.type==='team') { addNotif('Clubes oficiais não podem apostar.'); return; }
+      const stakeStr = prompt(`Apostar em ${pick} (odds ${odds}). Valor em V-COINS:`,'100');
+      if(!stakeStr) return;
+      const stake = parseInt(stakeStr);
+      if(stake<=0 || isNaN(stake)) return alert('Valor inválido');
+      if(u.wallet < stake) return alert('Saldo insuficiente');
+      const s=store.k;
+      const bet = { email:u.email, matchId, pick, odds, stake, result:"pendente", ts:Date.now() };
+      s.bets.push(bet);
+      u.wallet -= stake;
+      store.k=s;
+      addNotif(`Aposta realizada: ${pick} (${odds}) · ${coins(stake)}`);
+      renderBetsPage();
+    }
+
+    function renderBetsHistory(){
+      const s=store.k;
+      const my = store.user ? s.bets.filter(b=>b.email===store.user.email) : [];
+      qs('#betsHistory').innerHTML = my.slice().reverse().map(b=>{
+        return `<div class="flex items-center justify-between border-b border-gray-200 dark:border-gray-800 py-1">
+          <div>${b.pick} <span class="text-xs text-gray-500">odds ${b.odds}</span></div>
+          <div class="${b.result==='ganhou'?'text-green-600': b.result==='perdeu'?'text-red-500':'text-gray-500'}">${b.result}</div>
+          <div>${coins(b.stake)}</div>
+        </div>`;
+      }).join('') || "<div class='text-sm text-gray-500'>Sem apostas ainda.</div>";
+    }
+
+    function renderTopBettors(){
+      const s=store.k;
+      const gains = {};
+      s.bets.forEach(b=>{
+        if(b.result==='ganhou') gains[b.email]=(gains[b.email]||0)+Math.round(b.stake*b.odds);
+      });
+      const top = Object.entries(gains).sort((a,b)=>b[1]-a[1]).slice(0,5);
+      qs('#topBettors').innerHTML = top.map(([email, v],i)=>`<li>${(s.users[email]||{name:'—'}).name}: <b>${coins(v)}</b></li>`).join('') || "<li class='text-gray-500'>Ainda sem ganhadores.</li>";
+    }
+
+    function settleMatches(){
+      // Randomly settle some matches and bets
+      const s=store.k;
+      s.matches.forEach(m=>{
+        if(Math.random()<.3){ // 30% chance to finish
+          const outcome = sample([m.a, 'Empate', m.b]);
+          s.bets.filter(b=>b.matchId===m.id && b.result==='pendente').forEach(b=>{
+            if(b.pick===outcome){
+              b.result='ganhou';
+              const prize = Math.round(b.stake*b.odds);
+              s.users[b.email].wallet += prize;
+              addNotif(`Você ganhou ${coins(prize)} em ${m.a} x ${m.b}`);
+              award('apostador_iniciante');
+            }else{
+              b.result='perdeu';
+            }
+          });
+          m.ts = Date.now()-1000; // marca como concluída
+        }
+      });
+      store.k=s;
+    }
+
+    setInterval(()=>{ if(localStorage.getItem('cbfd_route')==='bets') { settleMatches(); renderBetsPage(); } }, 8000);
+
+    // ===== Clubs =====
+    function renderClubsPage(){
+      qs('#clubsGrid').innerHTML = CLUBS.map(name=>`<div class="p-3 rounded-xl bg-white dark:bg-dark shadow">
+        <div class="flex items-center gap-3">
+          <div class="text-3xl">🛡️</div>
+          <div>
+            <div class="font-bold">${name}<span class="verified"></span></div>
+            <div class="text-xs text-gray-500">Elenco, posts e estatísticas</div>
+          </div>
+        </div>
+        <div class="mt-2 flex gap-2 text-xs">
+          <button class="px-2 py-1 rounded bg-primary text-black font-bold" onclick="followClub('${name}')">Seguir</button>
+          <button class="px-2 py-1 rounded bg-gray-200 dark:bg-gray-700" onclick="openClub('${name}')">Abrir</button>
+        </div>
+      </div>`).join('');
+    }
+    function followClub(name){ if(!requireAuth()) return; addNotif('Você seguiu '+name); }
+    function openClub(name){ alert('Perfil do clube '+name+' — (página detalhada pode ser expandida futuramente)'); }
+
+    // ===== Marketplace & Agência =====
+    const MOCK_PLAYERS = Array.from({length:24}).map((_,i)=>({
+      id:i+1,
+      name: sample(["Alex","Bruno","Carlos","Diego","Edu","Felipe","Gustavo","Henrique","Igor","João","Kauã","Luiz","Marcos","Nicolas","Otávio","Paulo","Rafael","Samuel","Thiago","Victor"])+
+            " "+sample(["Silva","Souza","Alves","Ferreira","Lima","Ramos","Gomes","Mendes","Pereira","Oliveira"]),
+      pos: sample(POS),
+      age: rand(16,35),
+      verified: Math.random()>.6,
+      club: sample([...CLUBS,"Sem Clube"]),
+      price: rand(200,2000),
+      contract: sample(["livre","emprestimo","pago"]),
+      history: sample(["Campeão Série A","Artilheiro Taça","20 jogos na temporada","2 transferências"])
+    }));
+
+    function renderMarket(list = MOCK_PLAYERS){
+      const s=store.k;
+      qs('#marketList').innerHTML = list.map(p=>`<div class='bg-white dark:bg-dark rounded-xl shadow p-4'>
+        <div class='flex items-center gap-3'>
+          <div class="w-10 h-10 flex items-center justify-center text-xl">${p.verified?"🧑‍✈️":"🧑‍🦱"}</div>
+          <div>
+            <div class='font-bold'>${p.name}${p.verified?"<span class='verified'></span>":""}</div>
+            <div class='text-xs text-gray-500'>${p.pos} · ${p.age} anos · ${p.club}</div>
+          </div>
+          <span class="ml-auto badge bg-yellow-200 text-yellow-900 dark:bg-yellow-700 dark:text-yellow-100">${coins(p.price)}</span>
+        </div>
+        <div class='text-xs text-gray-600 dark:text-gray-300 mt-2'>${p.history} · Contrato: ${p.contract}</div>
+        <div class='mt-3 flex gap-2'>
+          <button class='px-3 py-1 rounded bg-primary text-black font-bold' onclick='buyPlayer(${p.id})'>Comprar</button>
+          <button class='px-3 py-1 rounded bg-gray-200 dark:bg-gray-700' onclick='transferPlayer(${p.id})'>Propor transferência</button>
+        </div>
+      </div>`).join('');
+      qs('#walletMarket').textContent = coins(currentWallet());
+      renderMarketRanking();
+    }
+
+    function currentWallet(){ const u=store.user? (store.k.users||{})[store.user.email] : null; return u?u.wallet:0; }
+
+    function renderMarketRanking(){
+      const s=store.k;
+      const agg = {};
+      s.marketActions.forEach(a=> agg[a.email]=(agg[a.email]||0)+a.value);
+      const top = Object.entries(agg).sort((a,b)=>b[1]-a[1]).slice(0,5);
+      qs('#marketRanking').innerHTML = top.map(([email,v])=>`<li>${(s.users[email]||{name:'—'}).name}: <b>${coins(v)}</b></li>`).join('') || "<li class='text-gray-500'>Sem movimentações ainda.</li>";
+    }
+
+    function applyMarketFilters(){
+      const contract=qs('#fContract').value;
+      const pos=qs('#fPos').value;
+      const pmin=parseInt(qs('#fPriceMin').value||0);
+      const pmax=parseInt(qs('#fPriceMax').value||Infinity);
+      const age=parseInt(qs('#fAge').value||0);
+      const ver=qs('#fVerified').value;
+      const club=qs('#fClub').value.toLowerCase();
+      const hist=qs('#fHistory').value.toLowerCase();
+      const filtered = MOCK_PLAYERS.filter(p=>
+        (!contract || p.contract===contract) &&
+        (!pos || p.pos===pos) &&
+        (p.price>=pmin && p.price<=pmax) &&
+        (!age || p.age===age) &&
+        (!ver || String(p.verified)===ver) &&
+        (!club || p.club.toLowerCase().includes(club)) &&
+        (!hist || p.history.toLowerCase().includes(hist))
+      );
+      renderMarket(filtered);
+    }
+    qs('#applyFilters').addEventListener('click', applyMarketFilters);
+
+    window.buyPlayer = function(id){
+      if(!requireAuth()) return;
+      const u=(store.k.users||{})[store.user.email];
+      const p = MOCK_PLAYERS.find(x=>x.id===id); if(!p) return;
+      if(u.wallet < p.price){ alert('Saldo insuficiente'); return; }
+      u.wallet -= p.price;
+      if(u.type==='team'){ p.club = (u.club||u.name).toUpperCase(); }
+      const s=store.k; s.users[u.email]=u; s.marketActions.push({email:u.email, action:'compra', value:p.price}); store.k=s;
+      hydrateWallets(); addNotif(`Compra realizada: ${p.name} por ${coins(p.price)}`); award('negociador');
+      renderMarket();
+    }
+
+    window.transferPlayer = function(id){
+      if(!requireAuth()) return;
+      const u=(store.k.users||{})[store.user.email];
+      const p = MOCK_PLAYERS.find(x=>x.id===id); if(!p) return;
+      const valor = Math.round(p.price* (0.6 + Math.random()*0.8));
+      if(u.wallet < valor){ alert('Saldo insuficiente para proposta'); return; }
+      u.wallet -= valor;
+      const s=store.k; s.users[u.email]=u; s.marketActions.push({email:u.email, action:'proposta', value:valor}); store.k=s;
+      hydrateWallets(); addNotif(`Proposta enviada por ${p.name} (${coins(valor)})`); award('mercado_ativo');
+      renderMarket();
+    }
+
+    function renderAgency(){
+      const users = Object.values(store.k.users||{}).filter(u=>u.wannaPlay);
+      const list = [
+        ...MOCK_PLAYERS.filter(p=> p.contract==='livre' || p.club==='Sem Clube').slice(0,9).map(p=>({
+          name:p.name, age:p.age, pos:p.pos, verified:p.verified, club:p.club, emoji:p.verified?"🧑‍✈️":"🧑‍🦱", tag:'Livre'
+        })),
+        ...users.map(u=>({
+          name:u.name, age:rand(16,35), pos:sample(POS), verified:u.verified, club:'Sem Clube', emoji:emojiForUser(u), tag:'Torcedor → Jogador'
+        }))
+      ];
+      qs('#agencyList').innerHTML = list.map(p=>`<div class='bg-white dark:bg-dark rounded-xl shadow p-4'>
+        <div class='flex items-center gap-3'>
+          <div class='w-10 h-10 flex items-center justify-center text-xl'>${p.emoji}</div>
+          <div>
+            <div class='font-bold'>${p.name}${p.verified?"<span class='verified'></span>":""}</div>
+            <div class='text-xs text-gray-500'>${p.pos} · ${p.age} anos · ${p.club}</div>
+          </div>
+          <span class='ml-auto badge bg-gray-200 dark:bg-gray-800'>${p.tag}</span>
+        </div>
+        <button class='mt-3 px-3 py-1 rounded bg-secondary text-white'>Contatar</button>
+      </div>`).join('') || `<div class='text-gray-500'>Nenhum jogador livre no momento</div>`;
+    }
+
+    // ===== Estatísticas =====
+    function ensureStandings(){
+      const s=store.k; if(!s.standings){
+        s.standings = CLUBS.map(n=>({ team:n, pj:rand(10,22), v:rand(3,15) }));
+        s.standings.forEach(r=>{ r.e=rand(0, r.pj - r.v); r.d=Math.max(0, r.pj - r.v - r.e); r.gp=rand(5,60); r.gc=rand(5,60); r.pts=r.v*3+r.e; });
+        s.scorers = Array.from({length:10}).map((_,i)=>({
+          name: `${sample(['R','L','M','D','N'])}. ${sample(['Silva','Souza','Alves','Ferreira','Lima','Ramos'])}`,
+          club: sample(CLUBS), g: rand(3,22)
+        })).sort((a,b)=>b.g-a.g);
+        store.k = s;
+      }
+    }
+    function renderStats(){
+      ensureStandings();
+      const st = store.k.standings.slice().sort((a,b)=> b.pts-a.pts || (b.gp-b.gc)-(a.gp-a.gc));
+      qs('#tableStandings').innerHTML = `
+        <tr class='text-left text-xs text-gray-500'>
+          <th class='py-1'>#</th><th>Time</th><th>PJ</th><th>V</th><th>E</th><th>D</th><th>GP</th><th>GC</th><th>Pts</th>
+        </tr>
+        ${st.map((r,i)=>`<tr class='border-t border-gray-100 dark:border-gray-800'>
+          <td class='py-1'>${i+1}</td><td>${r.team}</td><td>${r.pj}</td><td>${r.v}</td><td>${r.e}</td><td>${r.d}</td><td>${r.gp}</td><td>${r.gc}</td><td class='font-bold'>${r.pts}</td>
+        </tr>`).join('')}`;
+      qs('#tableScorers').innerHTML = `
+        <tr class='text-left text-xs text-gray-500'><th>#</th><th>Jogador</th><th>Clube</th><th>Gols</th></tr>
+        ${store.k.scorers.map((s,i)=>`<tr class='border-t border-gray-100 dark:border-gray-800'><td>${i+1}</td><td>${s.name}</td><td>${s.club}</td><td class='font-bold'>${s.g}</td></tr>`).join('')}`;
+    }
+
+    // ===== Grupos =====
+    const GROUPS = [
+      {id:'g1', name:'CBFD League One', cat:'Campeonatos'},
+      {id:'g2', name:'Copa CBFD', cat:'Campeonatos'},
+      ...CLUBS.slice(0,8).map((c,i)=>({id:'c'+i, name:c, cat:'Clubes'})),
+      {id:'f1', name:'Apostadores CBFD', cat:'Fãs'},
+      {id:'f2', name:'Mercado & Transferências', cat:'Fãs'}
+    ];
+    function renderGroups(){
+      const u = (store.k.users||{})[store.user?.email||''];
+      const joined = new Set(u?.groups||[]);
+      qs('#groupsGrid').innerHTML = GROUPS.map(g=>`<div class='bg-white dark:bg-dark rounded-xl shadow p-4'>
+        <div class='text-xs text-gray-500 mb-1'>${g.cat}</div>
+        <div class='font-bold mb-2'>${g.name}</div>
+        <button class='px-3 py-1 rounded ${joined.has(g.id)?'bg-gray-200 dark:bg-gray-800':'bg-primary text-black font-bold'}' onclick='toggleGroup("${g.id}")'>${joined.has(g.id)?'Sair':'Participar'}</button>
+      </div>`).join('');
+    }
+    window.toggleGroup = function(id){
+      if(!store.user) return requireAuth();
+      const u=(store.k.users||{})[store.user.email];
+      u.groups=u.groups||[];
+      const i=u.groups.indexOf(id); if(i>=0) u.groups.splice(i,1); else u.groups.push(id);
+      const s=store.k; s.users[u.email]=u; store.k=s; renderGroups();
+    }
+
+    // ===== Live =====
+    qs('#setLive').addEventListener('click', ()=>{
+      const url = qs('#liveUrl').value.trim(); if(!url) return;
+      let embed = url;
+      if(url.includes('youtube.com/watch')) embed = url.replace('watch?v=','embed/');
+      if(url.includes('twitch.tv')){
+        const ch = url.split('/').filter(Boolean).pop();
+        embed = `https://player.twitch.tv/?channel=${ch}&parent=${location.hostname}`;
+      }
+      qs('#liveYT').src = embed;
+      addNotif('Transmissão atualizada');
+    })
+
+    // ===== Profile / Wallet =====
+    function hydrateProfile(){
+      const logged = !!store.user;
+      qs('#openAuth').classList.toggle('hidden', logged);
+      qs('#userMenu').classList.toggle('hidden', !logged);
+      const u = logged ? (store.k.users||{})[store.user.email] : null;
+      qs('#userName').textContent = u? u.name : '—';
+      qs('#userHandle').textContent = u? u.handle : '@—';
+      qs('#userEmoji').textContent = u? emojiForUser(u) : '👤';
+      qs('#composerEmoji').textContent = u? emojiForUser(u) : '😀';
+      qs('#wallet').textContent = coins(u?u.wallet:0);
+      renderAchievements();
+      renderNotifList();
+    }
+    function hydrateWallets(){
+      const w = currentWallet();
+      qsa('#wallet, #walletBets, #walletMarket').forEach(el=> el.textContent = coins(w));
+    }
+
+    // ===== Jogos (Carreira) =====
+    function getCareer(){
+      const s=store.k; const u=store.user?.email; if(!u) return null;
+      s.career = s.career||{}; s.career[u] = s.career[u] || { club:'', season:1, matches:20, statsPlayer:{gols:0, assist:0, rating:0}, statsClub:{gp:0,gc:0,w:0,d:0,l:0,pts:0}, history:[] };
+      store.k=s; return s.career[u];
+    }
+
+    function saveCareer(car){ const s=store.k; s.career[store.user.email]=car; store.k=s; }
+
+    function renderGamesPage(){
+      if(!store.user) { requireAuth(); return; }
+      // Carregar selects
+      const sel = qs('#careerClub'); sel.innerHTML = CLUBS.map(c=>`<option>${c}</option>`).join('');
+      const car = getCareer();
+      if(car.club){ sel.value = car.club; }
+      qs('#careerMatches').value = car.matches||20;
+      fillSeasonUI();
+    }
+
+    function fillSeasonUI(){
+      const car = getCareer();
+      // Player block
+      qs('#playerSeason').innerHTML = `
+        <li>Clube: <b>${car.club||'—'}</b></li>
+        <li>Temporada: <b>${car.season}</b></li>
+        <li>Partidas: <b>${car.matches}</b></li>
+        <li>Gols: <b>${car.statsPlayer.gols}</b></li>
+        <li>Assistências: <b>${car.statsPlayer.assist}</b></li>
+        <li>Média de Desempenho: <b>${car.statsPlayer.rating.toFixed(2)}</b></li>`;
+      // Club block
+      qs('#clubSeason').innerHTML = `
+        <li>GP/GC: <b>${car.statsClub.gp}</b> / <b>${car.statsClub.gc}</b></li>
+        <li>V/E/D: <b>${car.statsClub.w}</b> / <b>${car.statsClub.d}</b> / <b>${car.statsClub.l}</b></li>
+        <li>Pontos: <b>${car.statsClub.pts}</b></li>`;
+    }
+
+    function spin(label, cb){
+      const el = label==='goals'? qs('#rollGoals') : label==='ou'? qs('#rollOU') : qs('#rollPerf');
+      const start = Date.now();
+      const dur = 1400 + Math.random()*600;
+      const timer = setInterval(()=>{
+        if(label==='goals') el.textContent = String(rand(0, 5));
+        if(label==='ou') el.textContent = sample(['Over 1.5','Over 2.5','Over 3.5','Under 1.5','Under 2.5','Under 3.5']);
+        if(label==='perf') el.textContent = sample(['⭐️⭐️⭐️⭐️⭐️','⭐️⭐️⭐️⭐️','⭐️⭐️⭐️','⭐️⭐️','⭐️']);
+        if(Date.now()-start>dur){ clearInterval(timer); cb(el.textContent); }
+      }, 70);
+    }
+
+    qsa('.spinBtn').forEach(btn=> btn.addEventListener('click', ()=>{
+      const type = btn.dataset.spin;
+      btn.disabled = true; btn.classList.add('opacity-70');
+      spin(type, ()=>{ btn.disabled=false; btn.classList.remove('opacity-70'); });
+    }));
+
+    qs('#careerStart').addEventListener('click', ()=>{
+      if(!requireAuth()) return;
+      const car = getCareer();
+      const club = qs('#careerClub').value;
+      const matches = parseInt(qs('#careerMatches').value||20);
+      if(!CLUBS.includes(club)) return alert('Selecione um clube oficial.');
+      car.club = club; car.matches = Math.max(10, Math.min(38, matches));
+      saveCareer(car); fillSeasonUI(); addNotif('Temporada configurada: '+club);
+    });
+
+    qs('#careerAdvance').addEventListener('click', ()=>{
+      if(!requireAuth()) return;
+      const goalsText = qs('#rollGoals').textContent.trim();
+      const ou = qs('#rollOU').textContent.trim();
+      const perfText = qs('#rollPerf').textContent.trim();
+      const goals = parseInt(goalsText)||0;
+      if(ou==='—' || perfText==='—') return alert('Gire todas as roletas antes.');
+      const car = getCareer();
+      // Update player
+      car.statsPlayer.gols += goals;
+      car.statsPlayer.assist += Math.max(0, Math.floor(goals*Math.random()));
+      const perfMap = { '⭐️':1, '⭐️⭐️':2, '⭐️⭐️⭐️':3, '⭐️⭐️⭐️⭐️':4, '⭐️⭐️⭐️⭐️⭐️':5 };
+      const rating = perfMap[perfText]||3;
+      // rolling average
+      const histCount = car.history.length;
+      car.statsPlayer.rating = ((car.statsPlayer.rating*histCount)+rating)/(histCount+1);
+      // Update club according to OU
+      const over = ou.startsWith('Over');
+      const val = parseFloat(ou.split(' ')[1]);
+      // Simulate match totals around OU
+      let teamGoals = over? Math.ceil(val + Math.random()*2) : Math.max(0, Math.floor(val - 1 - Math.random()*2));
+      let oppGoals = Math.max(0, Math.floor(Math.random()*Math.max(1, teamGoals)));
+      // Ensure at least 0-0 possibility
+      if(!over && Math.random()<.3){ teamGoals = 0; oppGoals = rand(0,1); }
+      car.statsClub.gp += teamGoals; car.statsClub.gc += oppGoals;
+      if(teamGoals>oppGoals){ car.statsClub.w++; car.statsClub.pts+=3; }
+      else if(teamGoals===oppGoals){ car.statsClub.d++; car.statsClub.pts+=1; }
+      else { car.statsClub.l++; }
+      // Save match in history
+      car.history.push({ ts:Date.now(), club:car.club, goals, ou, perf:rating, teamGoals, oppGoals });
+      saveCareer(car);
+      // Also nudge global scorers
+      const s=store.k;
+      if(s.scorers){
+        const meName = (s.users[store.user.email]?.name)||'Você';
+        const idx = s.scorers.findIndex(x=> x.name.startsWith(meName.charAt(0)) && x.club===car.club);
+        if(idx>=0) s.scorers[idx].g += goals; else s.scorers.unshift({name: meName, club:car.club, g:goals});
+        s.scorers = s.scorers.sort((a,b)=>b.g-a.g).slice(0,10);
+        store.k=s;
+      }
+      addNotif(`Resultado aplicado · ${car.club} ${teamGoals}x${oppGoals} · Você fez ${goals} gol(s)`);
+      fillSeasonUI();
+    });
+
+    qs('#careerReset').addEventListener('click', ()=>{
+      if(!requireAuth()) return;
+      if(!confirm('Resetar estatísticas da temporada atual?')) return;
+      const car = getCareer();
+      car.season += 1; car.statsPlayer={gols:0,assist:0,rating:0}; car.statsClub={gp:0,gc:0,w:0,d:0,l:0,pts:0}; car.history=[];
+      saveCareer(car); fillSeasonUI(); addNotif('Nova temporada iniciada');
+    });
+
+    // ===== Init =====
+    function hydrateUI(){ hydrateProfile(); hydrateWallets(); }
+
+    // Footer year
+    qs('#year').textContent = new Date().getFullYear();
+
+    // Open default route
+    (function init(){
+      // Fill selects
+      fillClubSelect(qs('#authClubSelect'));
+      toggleAuthFields();
+      const savedRoute = localStorage.getItem('cbfd_route') || 'feed';
+      go(savedRoute);
+      renderFeed();
+    })();
+
+    // Keyboard shortcuts for special users (painéis placeholders)
+    document.addEventListener('keydown', (e)=>{
+      if(e.ctrlKey && e.shiftKey && e.key.toLowerCase()==='u'){
+        const u=store.k.users[store.user?.email||''];
+        if(u && u.handle.replace('@','')==='luccaburrows') alert('Painel do Dono — (placeholder)');
+      }
+      if(e.ctrlKey && e.shiftKey && e.key.toLowerCase()==='a'){
+        const u=store.k.users[store.user?.email||''];
+        if(u && u.handle.replace('@','')==='prxdo10') alert('Painel de Admin — (placeholder)');
+      }
+    });
+  </script>
+</body>
+</html>
